@@ -32,9 +32,9 @@ class Singleton(object):
         return cls._inst
 
 
-class OracleDB(Singleton):
+class OracleDB():
     def __init__(self, ip = IP, port = PORT, db = DB, user_name = USER_NAME, user_pass = USER_PASS):
-        super(OracleDB, self).__init__()
+        # super(OracleDB, self).__init__()
 
         if STOP_ORCL:
             return

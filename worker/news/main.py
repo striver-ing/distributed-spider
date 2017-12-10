@@ -19,19 +19,21 @@ def main():
         task_status.is_doing = True
 
         # 查找任务
-        url = MASTER_ADDRESS + '/update_task'
-        tasks = tools.get_json_by_requests(url)
+        get_task_url = MASTER_ADDRESS + '/task/get_task'
+        print(get_task_url)
+        update_task_url = MASTER_ADDRESS + '/task/update_task'
+        tasks = tools.get_json_by_requests(get_task_url)
 
         def begin_callback():
             log.info('\n********** news begin **********')
             # 更新任务状态 doing
 
             data = {
-                'tasks':tasks,
+                'tasks':str(tasks),
                 'status':602
             }
 
-            if tools.get_json_by_requests(url, data = data):
+            if tools.get_json_by_requests(update_task_url, data = data):
                 log.debug('更新任务状态 正在做...')
 
         def end_callback():
@@ -39,11 +41,11 @@ def main():
             task_status.is_doing = False
 
             data = {
-                'tasks':tasks,
-                'status':602
+                'tasks':str(tasks),
+                'status':603
             }
 
-            if tools.get_json_by_requests(url, data = data):
+            if tools.get_json_by_requests(update_task_url, data = data):
                 log.debug('更新任务状态 已做完！')
 
         # 配置spider

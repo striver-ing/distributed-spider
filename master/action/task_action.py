@@ -23,6 +23,7 @@ class TaskAction():
         web.header('Content-Type','text/html;charset=UTF-8')
 
         data = json.loads(json.dumps(web.input()))
+        print(name)
         print(data)
 
         if name == 'get_task':
@@ -30,11 +31,11 @@ class TaskAction():
             return tools.dumps_json(tasks)
 
         elif name == 'update_task':
-            tasks = data.get('tasks', [])
+            tasks = eval(data.get('tasks', []))
             status = data.get('status')
-            self.task_service.update_task(tasks, status)
+            self.task_service.update_task_status(tasks, status)
 
-            return 1
+            return tools.dumps_json('{"status":1}')
 
     def GET(self, name):
         return self.deal_request(name)

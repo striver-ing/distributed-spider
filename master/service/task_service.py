@@ -21,8 +21,6 @@ TASK_COUNT = int(tools.get_conf_value('config.conf', 'task', 'task_count'))
 
 class TaskService():
     _task_ring_buff = RingBuff(TASK_BUFFER_SIZE)
-    _db = OracleDB()
-
     _offset = 1
 
     def __init__(self ):
@@ -41,7 +39,10 @@ class TaskService():
         '''.format(page_size = TaskService._offset + TASK_BUFFER_SIZE, offset = TaskService._offset)
         TaskService._offset += TASK_BUFFER_SIZE
 
-        tasks = TaskService._db.find(task_sql)
+        db = OracleDB()
+        tasks = db.find(task_sql)
+        db.close()
+
         if not tasks:
             TaskService._offset = 1
             self.load_task()
@@ -57,11 +58,15 @@ class TaskService():
         return tasks
 
     def update_task_status(self, tasks, status):
+      db = OracleDB()
+
       for task in tasks:
           website_id = task[0]
 
-          sql = "update tab_iopm_site set t.spider_time = to_char('%s', 'yyyy-mm-dd :hh24:mi:ss'), t.spider_status = %s where id = %s"%(tools.get_current_date(), status, website_id)
+          sql = "update tab_iopm_site t set t.spider_time = to_date('%s', 'yyyy-mm-dd :hh24:mi:ss'), t.spider_status = %s where id = %s"%(tools.get_current_date(), status, website_id)
 
-          TaskService._db.update(sql)
+          db.update(sql)
+      db.close()
+
 
 
