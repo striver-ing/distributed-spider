@@ -14,7 +14,7 @@ Created on 2017-08-02 09:20
 DEBUG = False
 
 URLS = (
-    '/get_task', 'action.task_action.TaskAction',
+    '/task(.*)', 'action.task_action.TaskAction',
     '/(.*)', 'action.help.Help'
 )
 

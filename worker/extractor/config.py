@@ -8,7 +8,7 @@ Created on 2017-12-07 15:57
 '''
 ## 提取正文的阈值配置
 MIN_PARAGRAPH_LENGHT = 5 # 最小段落长度
-MAX_PARAGRAPH_DISTANCE = 4 # 正文段落与段落之间的最大距离 段落之间可能有空白行
+MAX_PARAGRAPH_DISTANCE = 5 # 正文段落与段落之间的最大距离 段落之间可能有空白行
 MIN_PARAGRAPH_AND_CONTENT_PROPORTION = 0.5 # p标签内的文字长度/正文长度 最小占比
 MIN_COUNTENT_WORDS = 180 # 最小文章内容长度
 
@@ -70,3 +70,9 @@ AUTHOR_REGEXS_TEXT = [AUTHOR_REGEX + '\s*' + NAME for AUTHOR_REGEX in AUTHOR_REG
 AUTHOR_REGEX_TAG = [ # 基于标签
     '(?i)<meta.*?author.*?content="(.*?)"',
 ]
+
+# 特别的标题
+SPECIAL_TITLE = {
+    'qz001.gov.cn':'<h4>(.*?)</h4>',
+    'payh.gov.cn' : '<font color="#000000">(.*?)</font>'
+}

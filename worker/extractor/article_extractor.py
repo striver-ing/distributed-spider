@@ -74,8 +74,13 @@ class ArticleExtractor():
         return self.__replace_str(content, '(?! )\s+', '\n') # 非空格的空白符转换为回车
 
     def get_title(self):
-        regexs = ['<h1.*?>(.*?)</h1>', '<h2.*?>(.*?)</h2>']
-        title = tools.get_info(self._html, regexs, fetch_one = True)
+        title = ''
+
+        # 处理特殊的网站不规则的标题
+        for domain, regex in SPECIAL_TITLE.items():
+            if domain in self._url:
+                title = tools.get_info(self._html, regex, fetch_one = True)
+                break
 
         if not title:
             regex = '(?i)<title.*?>(.*?)</title>'
@@ -83,6 +88,11 @@ class ArticleExtractor():
             title = title[:title.find('_')] if '_' in title else title
             title = title[:title.find('-')] if '-' in title else title
             title = title[:title.find('|')] if '|' in title else title
+
+            if not title:
+                regexs = ['<h1.*?>(.*?)</h1>', '<h2.*?>(.*?)</h2>', '<h3.*?>(.*?)</h3>', '<h4.*?>(.*?)</h4>']
+                title = tools.get_info(self._html, regexs, fetch_one = True)
+
 
         title = tools.del_html_tag(title)
         return title
@@ -111,7 +121,8 @@ class ArticleExtractor():
         #     print(i, paragraph)
 
         # 统计连续n段的文本密度
-        paragraph_lengths = [len(self.__del_html_tag(paragraph)) for paragraph in paragraphs]
+        # paragraph_lengths = [len(self.__del_html_tag(paragraph)) for paragraph in paragraphs]
+        paragraph_lengths = [len(paragraph.strip()) for paragraph in paragraphs]
         paragraph_block_lengths = [sum(paragraph_lengths[i : i + MAX_PARAGRAPH_DISTANCE]) for i in range(len(paragraph_lengths))]  # 连续n段段落长度的总和（段落块），如段落长度为[0,1,2,3,4] 则连续三段段落长度为[3,6,9,3,4]
 
         content_start_pos = content_end_pos = paragraph_block_lengths.index(max(paragraph_block_lengths)) #文章的开始和结束位置默认在段落块文字最密集处
@@ -166,10 +177,10 @@ if __name__ == '__main__':
         # 'http://news.163.com/17/1201/21/D4JN5JRE0001875P.html',  # 乱码问题
         # 'http://mini.eastday.com/a/171204173416401.html',
         # 'http://www.sohu.com/a/208241102_570245',
-        # # # 'http://www.sohu.com/'
-        # # # 'http://www.southcn.com/'
+        # # # # 'http://www.sohu.com/'
+        # # # # 'http://www.southcn.com/'
 
-        # # # 'http://kb.southcn.com/default.htm'
+        # # # # 'http://kb.southcn.com/default.htm'
         # 'http://www.sohu.com/a/207186412_104421',
         # 'http://kb.southcn.com/content/2017-12/05/content_179364393.htm',
         # 'http://yn.people.com.cn/n2/2017/1129/c372315-30976586.html', #乱码
@@ -184,9 +195,12 @@ if __name__ == '__main__':
         # 'http://www.sohu.com/a/208241102_570245',
         # 'http://cnews.chinadaily.com.cn/2017-12/06/content_35230092.htm',
         # 'http://news.eastday.com/eastday/13news/auto/news/society/20171206/u7ai7256226.html',
-        # 'http://cj.sina.com.cn/article/detail/6185269244/510492'
-        # 'http://0575gwy.com/index.php/Index/show/id/2130'
-        'http://hdmedicine.com.cn/News_info.aspx?News_Id=787&CateId=24'
+        # 'http://cj.sina.com.cn/article/detail/6185269244/510492',
+        # 'http://0575gwy.com/index.php/Index/show/id/2130',
+        # 'http://hdmedicine.com.cn/News_info.aspx?News_Id=787&CateId=24',
+        'http://www.qz001.gov.cn/info/view/86ec076d71a44869ab71e00e5707f89e',
+        'http://payh.gov.cn/Art/Art_2/Art_2_795.aspx'
+
     ]
     for url in urls:
         html = tools.get_html(url)
@@ -200,7 +214,7 @@ if __name__ == '__main__':
         print(url)
         print('title : ', title)
         print('release_time: ', release_time)
-        print('author', author)
-        print('content : ',content)
+        # print('author', author)
+        # print('content : ',content)
         print('---------------------------')
 

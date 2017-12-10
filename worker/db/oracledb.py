@@ -41,6 +41,7 @@ class OracleDB(Singleton):
 
         if not hasattr(self,'conn'):
             try:
+                print(user_name, user_pass, '%s:%d/%s'%(ip, port, db))
                 self.conn = cx_Oracle.connect(user_name, user_pass, '%s:%d/%s'%(ip, port, db))#, threaded=True,events = True)
                 self.cursor = self.conn.cursor()
             except Exception as e:
@@ -176,19 +177,3 @@ if __name__ == '__main__':
     # import threading
 
     db = OracleDB()
-    # sql = 'select count(*) from v$process'
-
-    # result = threading.Thread(target = db.find, args = (sql,)).start()
-    # print(result)
-
-    # result = threading.Thread(target = db.find, args = ('select * from tab_mvms_violation_knowledge',)).start()
-    # print(result)
-
-    # result = threading.Thread(target = db.find, args = (sql,)).start()
-    # print(result)
-    # db.find("select ID,TITLE,to_char(CONTENT) as CONTENT,URL,WEBSITE_NAME,IMAGE_URL,to_char(RELEASE_TIME, 'yyyy-mm-dd hh24:mi:ss') as RELEASE_TIME,to_char(RECORD_TIME, 'yyyy-mm-dd hh24:mi:ss') as RECORD_TIME,CLUES_IDS,KEYWORDS,EMOTION,REVIEW_COUNT,ACCOUNT,UUID,COMMENT_COUNT,AUTHOR,INFO_TYPE,UP_COUNT,KEYWORDS_COUNT,HOST,HOT_ID,MAY_INVALID,KEYWORD_CLUES_ID,WEIGHT,IS_VIP from TAB_IOPM_ARTICLE_INFO t where rownum <= 5", to_json = True)
-
-
-    sql = "select * from TAB_IOPM_ARTICLE_INFO"
-    result = db.find(sql, to_json = True)
-    print(result)

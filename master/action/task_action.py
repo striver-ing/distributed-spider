@@ -19,18 +19,26 @@ class TaskAction():
     def __init__(self):
         self.task_service = TaskService()
 
-    def deal_request(self):
+    def deal_request(self, name):
         web.header('Content-Type','text/html;charset=UTF-8')
 
-        # data = json.loads(json.dumps(web.input()))
-        # print(data)
-        tasks = self.task_service.get_task()
+        data = json.loads(json.dumps(web.input()))
+        print(data)
 
-        return tools.dumps_json(tasks)
+        if name == 'get_task':
+            tasks = self.task_service.get_task()
+            return tools.dumps_json(tasks)
 
-    def GET(self):
-        return self.deal_request()
+        elif name == 'update_task':
+            tasks = data.get('tasks', [])
+            status = data.get('status')
+            self.task_service.update_task(tasks, status)
 
-    def POST(self):
-        return self.deal_request()
+            return 1
+
+    def GET(self, name):
+        return self.deal_request(name)
+
+    def POST(self, name):
+        return self.deal_request(name)
 

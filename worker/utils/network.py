@@ -26,10 +26,10 @@ IPPROXY_ADDRESS = get_conf_value('config.conf', 'ipproxy', 'address')
 
 class NetWork():
     def __init__(self):
-        self.browser_user_agent = self.get_user_agent()
+        self.browser_user_agent = ''#self.get_user_agent()
         self.headers = {}
         self.request_timeout = 7
-        self.proxies = self.get_proxies()
+        self.proxies = {}#self.get_proxies()
 
     def get_proxies(self):
         '''

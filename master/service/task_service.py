@@ -56,4 +56,12 @@ class TaskService():
 
         return tasks
 
+    def update_task_status(self, tasks, status):
+      for task in tasks:
+          website_id = task[0]
+
+          sql = "update tab_iopm_site set t.spider_time = to_char('%s', 'yyyy-mm-dd :hh24:mi:ss'), t.spider_status = %s where id = %s"%(tools.get_current_date(), status, website_id)
+
+          TaskService._db.update(sql)
+
 
