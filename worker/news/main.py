@@ -10,6 +10,8 @@ import time
 # 需配置
 import news.task_status as task_status
 from news.parsers import *
+
+MASTER_ADDRESS = tools.get_conf_value('config.conf', 'master', 'address')
 def main():
     while True:
         if task_status.is_doing:
@@ -18,7 +20,7 @@ def main():
         task_status.is_doing = True
 
         # 查找任务
-        url = 'http://localhost:9306/get_task'
+        url = MASTER_ADDRESS
         tasks = tools.get_json_by_requests(url)
 
         def begin_callback():

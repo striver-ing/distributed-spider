@@ -13,8 +13,17 @@ import init
 import requests
 import base.constance as Constance
 import random
+import configparser #读配置文件的
+import codecs
 
-# http://localhost:8000/
+def get_conf_value(config_file, section, key):
+    cp = configparser.ConfigParser(allow_no_value = True)
+    with codecs.open(config_file, 'r', encoding='utf-8') as f:
+        cp.read_file(f)
+    return cp.get(section, key)
+
+IPPROXY_ADDRESS = get_conf_value('config.conf', 'ipproxy', 'address')
+
 class NetWork():
     def __init__(self):
         self.browser_user_agent = self.get_user_agent()
@@ -30,9 +39,9 @@ class NetWork():
         ---------
         @result:
         '''
-
+        reponse = ''
         try:
-            reponse = requests.get('http://127.0.0.1:8000/?types=0&count=50')
+            reponse = requests.get(IPPROXY_ADDRESS)
             proxies = reponse.json()
             proxie = random.choice(proxies)
 
