@@ -19,6 +19,10 @@ class ArticleExtractor():
         self._html = html
         self._url = url
 
+        self._content_start_pos = ''
+        self._content_end_pos = ''
+        self._paragraphs = ''
+
         if not html:
             self._html = tools.get_html(url)
 
@@ -49,7 +53,7 @@ class ArticleExtractor():
         html = self.__replace_str(html, '(?i)<script(.|\n)*?</script>') #(?i)忽略大小写
         html = self.__replace_str(html, '(?i)<style(.|\n)*?</style>')
         html = self.__replace_str(html, '<!--(.|\n)*?-->')
-        html = self.__replace_str(html, '(?!&[a-z]+=)&[a-z]+;?') # 干掉&nbsp等无用的字符 但&xxx= 这种表示参数的除外
+        html = self.__replace_str(html, '(?!&[a-z]+=)&[a-z]+;?', ' ') # 干掉&nbsp等无用的字符 但&xxx= 这种表示参数的除外
 
         if save_useful_tag:
             html = self.__replace_str(html, r'(?!{useful_tag})<(.|\n)+?>'.format(useful_tag = '|'.join(USEFUL_TAG)))
@@ -144,6 +148,9 @@ class ArticleExtractor():
         paragraphs_text_len = len(self.__del_html_tag(''.join(tools.get_info(content, '<p.*?>(.*?)</p>'))))
         content_text_len = len(self.__del_html_tag(content))
         if content_text_len and content_text_len > MIN_COUNTENT_WORDS and ((paragraphs_text_len / content_text_len) > MIN_PARAGRAPH_AND_CONTENT_PROPORTION):
+            self._content_start_pos = content_start_pos
+            self._content_end_pos = content_end_pos
+            self._paragraphs = paragraphs
             return content
         else:
             return ''
@@ -161,7 +168,12 @@ class ArticleExtractor():
         return author
 
     def get_release_time(self):
-        content = self.__del_html_tag(self._text)
+
+        if self._content_start_pos and self._content_end_pos:
+            content = self.__replace_str('\n'.join(self._paragraphs[self._content_start_pos  - RELEASE_TIME_OFFSET: self._content_end_pos + RELEASE_TIME_OFFSET]), '<(.|\n)*?>', '<>')
+        else:
+            content = self.__replace_str(self._text, '<(.|\n)*?>', '<>')
+
         release_time = tools.get_info(content, DAY_TIME_REGEXS, fetch_one = True)
         release_time = tools.format_date(release_time)
 
@@ -198,23 +210,27 @@ if __name__ == '__main__':
         # 'http://cj.sina.com.cn/article/detail/6185269244/510492',
         # 'http://0575gwy.com/index.php/Index/show/id/2130',
         # 'http://hdmedicine.com.cn/News_info.aspx?News_Id=787&CateId=24',
-        'http://www.qz001.gov.cn/info/view/86ec076d71a44869ab71e00e5707f89e',
-        'http://payh.gov.cn/Art/Art_2/Art_2_795.aspx'
+        # 'http://www.qz001.gov.cn/info/view/86ec076d71a44869ab71e00e5707f89e',
+        # 'http://payh.gov.cn/Art/Art_2/Art_2_795.aspx',
+        # 'http://qiushi.nbgxedu.com/show.aspx?id=d479b45a-1747-4f60-83f3-f1e2dc85a0d2',
+        # 'http://31ly.com/show/10117/product-13846.html'
+        # 'http://www.jawin.com.cn/news/show-247708.html'
+        'http://pjsl.cn/Item/5845.aspx'
 
     ]
     for url in urls:
         html = tools.get_html(url)
 
         article_extractor = ArticleExtractor(url, html)
+        content = article_extractor.get_content()
         title = article_extractor.get_title()
         release_time = article_extractor.get_release_time()
         author = article_extractor.get_author()
-        content = article_extractor.get_content()
         print('---------------------------')
         print(url)
         print('title : ', title)
         print('release_time: ', release_time)
-        # print('author', author)
-        # print('content : ',content)
+        print('author', author)
+        print('content : ',content)
         print('---------------------------')
 

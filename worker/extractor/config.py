@@ -11,6 +11,7 @@ MIN_PARAGRAPH_LENGHT = 5 # 最小段落长度
 MAX_PARAGRAPH_DISTANCE = 5 # 正文段落与段落之间的最大距离 段落之间可能有空白行
 MIN_PARAGRAPH_AND_CONTENT_PROPORTION = 0.5 # p标签内的文字长度/正文长度 最小占比
 MIN_COUNTENT_WORDS = 180 # 最小文章内容长度
+RELEASE_TIME_OFFSET= 5 # 发布时间偏离正文区域的距离， 如正文在 10~28 行 ，发布时间在 (10-RELEASE_TIME_OFFSET) ~ (28 + RELEASE_TIME_OFFSET) 行之内
 
 USEFUL_TAG = [ # html 中需要保留的标签
         r'<img(.|\n)+?>',
