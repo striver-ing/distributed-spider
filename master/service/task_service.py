@@ -42,10 +42,8 @@ class TaskService():
         '''.format(page_size = TaskService._offset + TASK_BUFFER_SIZE, offset = TaskService._offset)
         TaskService._offset += TASK_BUFFER_SIZE
 
-        # db = OracleDB()
         print(task_sql)
         tasks = TaskService._db.find(task_sql)
-        # db.close()
 
         if not tasks:
             TaskService._offset = 1
@@ -65,7 +63,6 @@ class TaskService():
 
     def update_task_status(self, tasks, status):
         TaskService._lock.acquire() #加锁
-        # db = OracleDB()
         for task in tasks:
           website_id = task[0]
 
@@ -73,6 +70,5 @@ class TaskService():
 
           TaskService._db.update(sql)
         TaskService._lock.release()
-        # db.close()
 
 
