@@ -87,7 +87,7 @@ def parser(url_info):
                 content      %s
                 '''%(uuid, title, author, release_time, website_name, website_domain, website_position, root_url, content))
 
-            if tools.is_have_chinese(title) or tools.is_have_english(title):
+            if tools.is_have_chinese(title):
                 # 入库
                 self_base_parser.add_news_acticle(uuid, title, author, release_time, website_name, website_domain, website_position, root_url, content)
 
