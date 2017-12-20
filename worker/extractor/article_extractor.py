@@ -125,8 +125,8 @@ class ArticleExtractor():
         #     print(i, paragraph)
 
         # 统计连续n段的文本密度
-        # paragraph_lengths = [len(self.__del_html_tag(paragraph)) for paragraph in paragraphs]
-        paragraph_lengths = [len(paragraph.strip()) for paragraph in paragraphs]
+        paragraph_lengths = [len(self.__del_html_tag(paragraph)) for paragraph in paragraphs]
+        # paragraph_lengths = [len(paragraph.strip()) for paragraph in paragraphs]
         paragraph_block_lengths = [sum(paragraph_lengths[i : i + MAX_PARAGRAPH_DISTANCE]) for i in range(len(paragraph_lengths))]  # 连续n段段落长度的总和（段落块），如段落长度为[0,1,2,3,4] 则连续三段段落长度为[3,6,9,3,4]
 
         content_start_pos = content_end_pos = paragraph_block_lengths.index(max(paragraph_block_lengths)) #文章的开始和结束位置默认在段落块文字最密集处

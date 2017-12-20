@@ -80,14 +80,17 @@ class Spider(threading.Thread):
                 self._end_callabck()
             return
 
-        # 启动collector
-        self._collector.add_finished_callback(self._end_callabck)
-        self._collector.start()
         # 启动parser 的add site 和 add root
         #print(self._parser_params)
         for parser in self._parsers:
-            threading.Thread(target = parser.add_site_info).start()
-            threading.Thread(target = parser.add_root_url, args = (self._parser_params,)).start()
+            print(parser)
+            parser.add_site_info()
+            parser.add_root_url(self._parser_params)
+
+        # 启动collector
+        self._collector.add_finished_callback(self._end_callabck)
+        self._collector.start()
+
         # 启动parser control
         while self._parser_count:
             parser_control = PaserControl(self._collector, self._tab_urls)

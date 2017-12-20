@@ -111,6 +111,12 @@ def get_html_2XX_only(url, network=None, response=None):
     try:
         response = requests.get(
             url=url, **get_request_kwargs(timeout, useragent, proxies, headers))
+
+        content_type = response.headers.get('Content-Type', '')
+        if 'text/html' not in content_type:
+            log.error('not is html on URL: %s' % (url))
+            return ''
+
     except requests.exceptions.RequestException as e:
         log.error('get_html_2XX_only() error. %s on URL: %s' % (e, url))
         return ''
@@ -262,7 +268,7 @@ def get_json_by_requests(url, params = None, headers = '', data = None, proxies 
 
     return json
 
-def get_urls(html, stop_urls = ['javascript', '#', '+', '.css', '.js']):
+def get_urls(html, stop_urls = ['javascript', '+', '.css', '.js', '.rar', '.xls', '.exe', '.apk']):
     # 不匹配javascript、 +、 # 这样的url
     regex = r'<a.*?href.*?=.*?["|\'](.*?)["|\']'
 
@@ -634,14 +640,14 @@ def read_file(filename, readlines = False, encoding = 'utf-8'):
 
     return content
 
-def is_file(url, file_type):
+def is_html(url):
     if not url:
         return False
 
     try:
         content_type = request.urlopen(url).info().get('Content-Type', '')
 
-        if file_type in content_type:
+        if 'text/html' in content_type:
             return True
         else:
             return False

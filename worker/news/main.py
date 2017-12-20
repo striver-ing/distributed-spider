@@ -11,10 +11,12 @@ import news.task_status as task_status
 from news.parsers import *
 
 MASTER_ADDRESS = tools.get_conf_value('config.conf', 'master', 'address')
+SEARCH_TASK_SLEEP_TIME = int(tools.get_conf_value('config.conf', 'task', 'search_task_sleep_time'))
 def main():
     while True:
         if task_status.is_doing:
-            tools.delay_time(60 * 5)
+            tools.delay_time(SEARCH_TASK_SLEEP_TIME)
+            continue
 
         task_status.is_doing = True
 
@@ -23,6 +25,7 @@ def main():
         print(get_task_url)
         update_task_url = MASTER_ADDRESS + '/task/update_task'
         tasks = tools.get_json_by_requests(get_task_url)
+        print(tasks)
 
         def begin_callback():
             log.info('\n********** news begin **********')

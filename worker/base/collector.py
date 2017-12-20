@@ -8,6 +8,7 @@ Created on 2016-12-23 11:24
 '''
 import sys
 sys.path.append('..')
+import init
 import threading
 import base.constance as Constance
 import utils.tools as tools
@@ -15,17 +16,15 @@ from db.mongodb import MongoDB
 from utils.log import log
 import time
 
-class Collector(threading.Thread):
+class Collector():
     def __init__(self, tab_urls):
         super(Collector, self).__init__()
         self._lock = threading.RLock()
 
         self._db = MongoDB()
         self._thread_stop = False
-        self._urls = []
+        self._urls =[]
         self._null_times = 0
-        self._read_pos = -1
-        self._write_pos = -1
         self._tab_urls = tab_urls
         self._depth = int(tools.get_conf_value('config.conf', "collector", "depth"))
         self._max_size = int(tools.get_conf_value('config.conf', "collector", "max_size"))
@@ -38,26 +37,17 @@ class Collector(threading.Thread):
 
         self._finished_callback = None
 
-    def run(self):
-        while not self._thread_stop:
-            self.__input_data()
-            time.sleep(self._interval)
+    def start(self):
+        self.__input_data()
 
     def stop(self):
         self._thread_stop = True
-
         if self._finished_callback:
             self._finished_callback()
 
     # @tools.log_function_time
     def __input_data(self):
-        # log.debug('read_pos %d, write_pos %d buffer size %d'%(self._read_pos, self._write_pos, self.get_max_read_size()))
-        # log.debug('buffer can write size = %d'%self.get_max_write_size())
-        if self.get_max_write_size() == 0:
-            log.debug("collector 已满 size = %d"%self.get_max_read_size())
-            return
-
-        url_count = self._url_count if self._url_count <= self.get_max_write_size() else self.get_max_write_size()
+        url_count = self._url_count
 
         urls_list = []
         if self._depth:
@@ -73,6 +63,7 @@ class Collector(threading.Thread):
         self.put_urls(urls_list)
 
         if self.is_all_have_done():
+            print('is_all_have_done')
             self.stop()
 
     def is_finished(self):
@@ -83,80 +74,45 @@ class Collector(threading.Thread):
 
     # 没有可做的url
     def is_all_have_done(self):
-        if self.get_max_read_size() == 0:
+        print('判断是否有未做的url ')
+        if len(self._urls) == 0:
             self._null_times += 1
             if self._null_times >= self._allowed_null_times:
                 #检查数据库中有没有正在做的url
                 urls_doing = self._db.find(self._tab_urls, {'status':Constance.DOING})
-                if urls_doing:
+                if urls_doing: # 如果有未做的url 且数量有变化，说明没有卡死
+                    print('有未做的url %s'%len(urls_doing))
                     self._null_times = 0
                     return False
                 else:
                     return True
+            else:
+                return False
         else:
             self._null_times = 0
             return False
 
-    def get_max_write_size(self):
-        size = 0
-        if self._read_pos == self._write_pos:
-            size = self._max_size
-        elif self._read_pos < self._write_pos:
-            size = self._max_size - (self._write_pos - self._read_pos)
-        else:
-            size = self._read_pos - self._write_pos
-
-        return size - 1
-
-    def get_max_read_size(self):
-        return self._max_size -1 - self.get_max_write_size()
 
     # @tools.log_function_time
     def put_urls(self, urls_list):
-        # urls_list = urls_list[:self.get_max_write_size()]
-        if urls_list == []:
-            return
-
-        # 添加url 到 _urls
-        url_count = len((urls_list))
-        end_pos = url_count + self._write_pos + 1
-        # 判断是否超出队列容量 超出的话超出的部分需要从头写
-        # 超出部分
-        overflow_end_pos = end_pos - self._max_size
-        # 没超出部分
-        in_pos =  end_pos if end_pos <= self._max_size else self._max_size
-
-        # 没超出部分的数量
-        urls_listCutPos = in_pos - self._write_pos - 1
-
-        self._lock.acquire() #加锁
-
-        self._urls[self._write_pos + 1 : in_pos] = urls_list[:urls_listCutPos]
-        if overflow_end_pos > 0:
-            self._urls[:overflow_end_pos] = urls_list[urls_listCutPos:]
-
-        self._lock.release()
-
-        self._write_pos += url_count
-        self._write_pos %= self._max_size   # -1 取余时问题  -1 % 1000 = 999  这样can write size 为0 urls_list为空时返回 规避了这个问题
+        self._urls.extend(urls_list)
 
     # @tools.log_function_time
     def get_urls(self, count):
         self._lock.acquire() #加锁
-        urls = []
 
-        count = count if count <= self.get_max_read_size() else self.get_max_read_size()
-        end_pos = self._read_pos + count + 1
-        if end_pos > self._max_size:
-            urls.extend(self._urls[self._read_pos + 1:])
-            urls.extend(self._urls[: end_pos % self._max_size])
-        else:
-            urls.extend(self._urls[self._read_pos + 1: end_pos])
+        if not self._urls:
+            self.__input_data()
 
-        if urls:
-            self._read_pos += len(urls)
-            self._read_pos %= self._max_size
+        urls = self._urls[:count]
+        del self._urls[:count]
 
         self._lock.release()
 
         return urls
+
+if __name__ == '__main__':
+    # collector = Collector('news_urls')
+    # url = collector.get_urls(20)
+    # print(url)
+    pass

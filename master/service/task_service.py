@@ -15,6 +15,7 @@ import utils.tools as tools
 from db.oracledb import OracleDB
 from utils.log import log
 from utils.ring_buff import RingBuff
+import threading
 
 TASK_BUFFER_SIZE = int(tools.get_conf_value('config.conf', 'task', 'task_buffer_size'))
 TASK_COUNT = int(tools.get_conf_value('config.conf', 'task', 'task_count'))
@@ -22,6 +23,8 @@ TASK_COUNT = int(tools.get_conf_value('config.conf', 'task', 'task_count'))
 class TaskService():
     _task_ring_buff = RingBuff(TASK_BUFFER_SIZE)
     _offset = 1
+    _lock = threading.RLock()
+    _db = OracleDB()
 
     def __init__(self ):
         pass
@@ -39,9 +42,10 @@ class TaskService():
         '''.format(page_size = TaskService._offset + TASK_BUFFER_SIZE, offset = TaskService._offset)
         TaskService._offset += TASK_BUFFER_SIZE
 
-        db = OracleDB()
-        tasks = db.find(task_sql)
-        db.close()
+        # db = OracleDB()
+        print(task_sql)
+        tasks = TaskService._db.find(task_sql)
+        # db.close()
 
         if not tasks:
             TaskService._offset = 1
@@ -50,23 +54,25 @@ class TaskService():
         TaskService._task_ring_buff.put_data(tasks)
 
     def get_task(self, count = TASK_COUNT):
+        TaskService._lock.acquire() #加锁
         tasks = TaskService._task_ring_buff.get_data(count)
         if not tasks:
             self.load_task()
             tasks = TaskService._task_ring_buff.get_data(count)
 
+        TaskService._lock.release()
         return tasks
 
     def update_task_status(self, tasks, status):
-      db = OracleDB()
-
-      for task in tasks:
+        TaskService._lock.acquire() #加锁
+        # db = OracleDB()
+        for task in tasks:
           website_id = task[0]
 
           sql = "update tab_iopm_site t set t.spider_time = to_date('%s', 'yyyy-mm-dd :hh24:mi:ss'), t.spider_status = %s where id = %s"%(tools.get_current_date(), status, website_id)
 
-          db.update(sql)
-      db.close()
-
+          TaskService._db.update(sql)
+        TaskService._lock.release()
+        # db.close()
 
 
