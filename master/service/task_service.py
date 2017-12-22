@@ -34,8 +34,7 @@ class TaskService():
             select *
               from (select t.id, t.name, t.position, t.url, t.domain, rownum r
                       from TAB_IOPM_SITE t
-                     where position = 11
-                       and classify = 1
+                     where classify = 1
                        and t.mointor_status = 701
                        and rownum < {page_size})
              where r >= {offset}
