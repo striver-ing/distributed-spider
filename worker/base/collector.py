@@ -16,7 +16,7 @@ from db.mongodb import MongoDB
 from utils.log import log
 import time
 
-class Collector():
+class Collector(threading.Thread):
     def __init__(self, tab_urls):
         super(Collector, self).__init__()
         self._lock = threading.RLock()
@@ -37,8 +37,10 @@ class Collector():
 
         self._finished_callback = None
 
-    def start(self):
-        self.__input_data()
+    def run(self):
+        while not self._thread_stop:
+            self.__input_data()
+            time.sleep(self._interval)
 
     def stop(self):
         self._thread_stop = True
@@ -47,13 +49,14 @@ class Collector():
 
     # @tools.log_function_time
     def __input_data(self):
-        url_count = self._url_count
+        if len(self._urls) > self._url_count:
+            return
 
         urls_list = []
         if self._depth:
-            urls_list = self._db.find(self._tab_urls, {"status":Constance.TODO, "depth":{"$lte":self._depth}}, limit = url_count)
+            urls_list = self._db.find(self._tab_urls, {"status":Constance.TODO, "depth":{"$lte":self._depth}}, limit = self._url_count)
         else:
-            urls_list = self._db.find(self._tab_urls, {"status":Constance.TODO}, limit = url_count)
+            urls_list = self._db.find(self._tab_urls, {"status":Constance.TODO}, limit = self._url_count)
 
         #更新已取到的url状态为doing
         for url in urls_list:
@@ -100,9 +103,6 @@ class Collector():
     # @tools.log_function_time
     def get_urls(self, count):
         self._lock.acquire() #加锁
-
-        if not self._urls:
-            self.__input_data()
 
         urls = self._urls[:count]
         del self._urls[:count]
