@@ -153,7 +153,7 @@ class ES(Singleton):
             self._es.indices.put_mapping(index = table, doc_type = doc_type or table, body = mapping)
 
 if __name__ == '__main__':
-    es = ES('localhost:9200')
+    es = ES()
     # { "create": { "_index": "index1", "_type": "resource", "_id": 1 } }
     # { "title": "周星驰最新电影" }
     # { "create": { "_index": "index1", "_type": "resource", "_id": 2 } }
@@ -168,11 +168,11 @@ if __name__ == '__main__':
     # es = ES()
     # es.add('myindex', {'RECORD_TIME':'2017-08-22 08:19:23', 'TITLE':'最最最最好的新新新新电影', 'ids' : '188'})
 
-    body =  {
-    }
+    # body =  {
+    # }
 
-    body['TITLE'] = "ccdfdasfd"
-    es.update_by_id('myindex', 'AV-zaTebI30Cg1dxzSYP', body)
+    # body['TITLE'] = "ccdfdasfd"
+    # es.update_by_id('myindex', 'AV-zaTebI30Cg1dxzSYP', body)
     # # datas = es.get('tab_iopm_article_info', 14488)
     # # print(datas)
 
