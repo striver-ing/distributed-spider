@@ -15,55 +15,6 @@ from db.elastic_search import ES
 
 es = ES()
 
-def set_mapping():
-    mapping = {
-        "news_article":{
-            "properties":{
-                "website":{
-                    "type":"string",
-                    "analyzer":"ik_max_word"
-                },
-                "author":{
-                    "type":"string",
-                    "index":"not_analyzed"
-                },
-                "domain":{
-                    "type":"string",
-                    "index":"not_analyzed"
-                },
-                "position":{
-                    "type":"long"
-                },
-                "title":{
-                    "type":"string",
-                    "analyzer":"ik_max_word"
-                },
-                "uuid":{
-                    "type":"string",
-                    "index":"not_analyzed"
-                },
-                "content":{
-                    "type":"string",
-                    "analyzer":"ik_max_word"
-                },
-                "url":{
-                    "type":"string",
-                    "index":"not_analyzed"
-                },
-                "release_time":{
-                    "type":"date",
-                    "format":"yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis"
-                },
-                "record_time":{
-                    "type":"date",
-                    "format":"yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis"
-                }
-            }
-        }
-    }
-
-    es.set_mapping('news_article', mapping)
-
 def add_news_acticle(uuid, title, author, release_time, website_name, website_domain, website_position, url, content):
     article = {
         'uuid' : uuid,
@@ -79,7 +30,3 @@ def add_news_acticle(uuid, title, author, release_time, website_name, website_do
     }
 
     es.add('news_article', article, uuid)
-
-
-if __name__ == '__main__':
-    set_mapping()
