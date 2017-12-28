@@ -111,7 +111,8 @@ class MongoDB(Singleton):
         @result:
         '''
         try:
-            self._db[table].remove(condition)
+            # self._db[table].remove(condition)
+            self._db[table].drop()
         except Exception as e:
             log.error(e)
             return False
@@ -129,3 +130,7 @@ class MongoDB(Singleton):
             self._db[table].ensure_index(key, unique=False)
         except Exception as e:
             log.error(e)
+
+if __name__ == '__main__':
+    mongodb = MongoDB()
+    mongodb.delete('news_urls')
