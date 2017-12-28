@@ -175,6 +175,9 @@ class ArticleExtractor():
             content = self.__replace_str(self._text, '<(.|\n)*?>', '<>')
 
         release_time = tools.get_info(content, DAY_TIME_REGEXS, fetch_one = True)
+        if not release_time:
+            release_time = tools.get_info(self.__replace_str(self._text, '<(.|\n)*?>', '<>'), DAY_TIME_REGEXS, fetch_one = True)
+
         release_time = tools.format_date(release_time)
 
         return release_time
@@ -215,7 +218,9 @@ if __name__ == '__main__':
         # 'http://qiushi.nbgxedu.com/show.aspx?id=d479b45a-1747-4f60-83f3-f1e2dc85a0d2',
         # 'http://31ly.com/show/10117/product-13846.html'
         # 'http://www.jawin.com.cn/news/show-247708.html'
-        'http://pjsl.cn/Item/5845.aspx'
+        # 'http://pjsl.cn/Item/5845.aspx'
+        # 'http://media.people.com.cn/n1/2016/0228/c40606-28155536.html'
+        'http://www.c114.com.cn/news/17/a1036615.html'
 
     ]
     for url in urls:
