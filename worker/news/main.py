@@ -1,6 +1,7 @@
 import sys
 sys.path.append('../')
 import init
+import pid
 import utils.tools as tools
 from utils.log import log
 from base.spider import Spider
