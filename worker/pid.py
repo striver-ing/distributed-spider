@@ -10,5 +10,5 @@ Created on 2018-01-05 15:01
 import os
 
 print('进程pid为 %d'%os.getpid())
-with open('pid.txt', 'w') as file:
+with open('../pid.txt', 'w') as file:
     file.write(str(os.getpid()))
