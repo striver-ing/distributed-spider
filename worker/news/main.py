@@ -2,6 +2,7 @@ import sys
 sys.path.append('../')
 import init
 import pid
+pid.record_pid(__file__)
 import utils.tools as tools
 from utils.log import log
 from base.spider import Spider

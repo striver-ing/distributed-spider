@@ -11,6 +11,8 @@ Created on 2017-08-02 12:25
 import web
 import config
 import sys
+import pid
+pid.record_pid(__file__)
 
 def start_server():
     web.config.debug = config.DEBUG
