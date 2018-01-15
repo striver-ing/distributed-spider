@@ -6,3 +6,4 @@ log/*
 .env
 model.bin
 test.py
+*/pid

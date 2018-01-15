@@ -60,9 +60,7 @@ def parser(url_info):
     urls = tools.get_urls(html)
     for url in urls:
         url = tools.get_full_url(website_url, url)
-        # print(url)
-        if website_domain in url:
-            base_parser.add_url('news_urls', SITE_ID, url, depth + 1, remark = remark)
+        base_parser.add_url('news_urls', SITE_ID, url, depth + 1, remark = remark)
 
     # 解析网页
     content = title = release_time = author = ''
@@ -97,14 +95,14 @@ if __name__ == '__main__':
     url_info = {
         "_id" : "5a3b894ccdd76b0dbc87a43b",
         "retry_times" : 0,
-        "url" : "http://www.jhjsj.gov.cn/",
+        "url" : "https://news.baidu.com/",
         "depth" : 1,
         "status" : 1,
         "remark" : {
-            "website_url" : "http://www.jhjsj.gov.cn",
+            "website_url" : "https://news.baidu.com/",
             "website_position" : 11,
-            "website_name" : "金华市住房和城乡建设局",
-            "website_domain" : "jhjsj.gov.cn"
+            "website_name" : "百度新闻",
+            "website_domain" : "news.baidu.com"
         },
         "site_id" : 1
     }
