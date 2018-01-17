@@ -268,7 +268,7 @@ def get_json_by_requests(url, params = None, headers = '', data = None, proxies 
 
     return json
 
-def get_urls(html, stop_urls = ['javascript', '+', '.css', '.js', '.rar', '.xls', '.exe', '.apk', '.doc']):
+def get_urls(html, stop_urls = ['javascript', '+', '.css', '.js', '.rar', '.xls', '.exe', '.apk', '.doc', '.jpg', '.png']):
     # 不匹配javascript、 +、 # 这样的url
     regex = r'<a.*?href.*?=.*?["|\'](.*?)["|\']'
 

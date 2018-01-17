@@ -27,6 +27,7 @@ def main():
         print(get_task_url)
         update_task_url = MASTER_ADDRESS + '/task/update_task'
         tasks = tools.get_json_by_requests(get_task_url)
+        # tasks = [[209690, '百度新闻', 11, 'http://news.baidu.com/?tn=news', 'news.baidu.com', 271]]
         print(tasks)
 
         def begin_callback():

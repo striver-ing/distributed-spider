@@ -14,6 +14,8 @@ SITE_ID = 1
 # 必须定义 网站名
 NAME = '新闻正文提取'
 
+DEPTH = int(tools.get_conf_value('config.conf', "collector", "depth"))
+
 # 必须定义 添加网站信息
 @tools.run_safe_model(__name__)
 def add_site_info():
@@ -57,11 +59,17 @@ def parser(url_info):
         return
 
     # 近一步取待做url
-    urls = tools.get_urls(html)
-    for url in urls:
-        url = tools.get_full_url(website_url, url)
-        if website_domain in url:
-            base_parser.add_url('news_urls', SITE_ID, url, depth + 1, remark = remark)
+    if depth < DEPTH:
+        urls = tools.get_urls(html)
+        for url in urls:
+            url = tools.get_full_url(website_url, url)
+            if website_name == '百度新闻':
+                remark['website_name'] = ''
+                remark['website_domain'] = tools.get_domain(url)
+                remark['website_position'] = None
+                base_parser.add_url('news_urls', SITE_ID, url, depth + 1, remark = remark)
+            elif website_domain in url:
+                base_parser.add_url('news_urls', SITE_ID, url, depth + 1, remark = remark)
 
     # 解析网页
     content = title = release_time = author = ''
