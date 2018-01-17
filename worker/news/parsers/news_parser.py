@@ -33,7 +33,7 @@ def add_root_url(parser_params = {}):
         website_name = task[1]
         website_position = task[2]
         website_url = task[3]
-        website_domain = task[4]
+        website_domain = task[4] or tools.get_domain(website_url)
 
         base_parser.add_url('news_urls', SITE_ID, website_url, remark = {'website_name':website_name, 'website_position':website_position, 'website_url':website_url, 'website_domain':website_domain})
 
@@ -60,7 +60,8 @@ def parser(url_info):
     urls = tools.get_urls(html)
     for url in urls:
         url = tools.get_full_url(website_url, url)
-        base_parser.add_url('news_urls', SITE_ID, url, depth + 1, remark = remark)
+        if website_domain in url:
+            base_parser.add_url('news_urls', SITE_ID, url, depth + 1, remark = remark)
 
     # 解析网页
     content = title = release_time = author = ''
@@ -70,7 +71,7 @@ def parser(url_info):
         title = article_extractor.get_title()
         release_time = article_extractor.get_release_time()
         author = article_extractor.get_author()
-        uuid = tools.get_uuid(title, website_domain) if title != website_name else tools.get_uuid(root_url)
+        uuid = tools.get_uuid(title, website_domain) if title != website_name else tools.get_uuid(root_url, ' ')
 
         log.debug('''
             uuid         %s
@@ -92,18 +93,5 @@ def parser(url_info):
     base_parser.update_url('news_urls', root_url, Constance.DONE)
 
 if __name__ == '__main__':
-    url_info = {
-        "_id" : "5a3b894ccdd76b0dbc87a43b",
-        "retry_times" : 0,
-        "url" : "https://news.baidu.com/",
-        "depth" : 1,
-        "status" : 1,
-        "remark" : {
-            "website_url" : "https://news.baidu.com/",
-            "website_position" : 11,
-            "website_name" : "百度新闻",
-            "website_domain" : "news.baidu.com"
-        },
-        "site_id" : 1
-    }
+    url_info = {'url': 'http://shuhua.dzwww.com/tplb/201801/t20180103_16864324.htm', 'status': 0, 'remark': {'website_domain': None, 'website_url': 'http://www.dzwww.com/', 'website_position': 15, 'website_name': '山东大众网'}, '_id': '5a5ea26ecdd76b52e8bb745d', 'site_id': 1, 'retry_times': 0, 'depth': 1}
     parser(url_info)
