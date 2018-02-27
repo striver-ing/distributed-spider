@@ -29,4 +29,5 @@ def add_news_acticle(uuid, title, author, release_time, website_name, website_do
         'record_time' : tools.get_current_date()
     }
 
-    es.add('news_article', article, uuid)
+    if not es.get('news_article', uuid):
+        es.add('news_article', article, uuid)
