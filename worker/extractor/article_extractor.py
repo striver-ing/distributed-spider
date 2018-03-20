@@ -221,7 +221,8 @@ if __name__ == '__main__':
         # 'http://pjsl.cn/Item/5845.aspx'
         # 'http://media.people.com.cn/n1/2016/0228/c40606-28155536.html'
         # 'http://www.c114.com.cn/news/17/a1036615.html'
-        'http://news.sina.com.cn/sf/news/flfg/2017-12-04/doc-ifypikwt7105025.shtml'
+        # 'http://news.sina.com.cn/sf/news/flfg/2017-12-04/doc-ifypikwt7105025.shtml'
+        'http://app.finance.china.com.cn/stock/quote/daily.php?code=sz002142&day=2018-03-14'
 
     ]
     for url in urls:
