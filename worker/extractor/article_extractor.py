@@ -184,7 +184,7 @@ class ArticleExtractor():
 
 if __name__ == '__main__':
     urls = [
-        # 'http://news.cctv.com/2017/11/30/ARTIvCEUIYEZx9HTsTypXySQ171130.shtml',
+        'http://news.cctv.com/2017/11/30/ARTIvCEUIYEZx9HTsTypXySQ171130.shtml',
         # 'http://www.sohu.com/a/208214795_115178',
         # 'http://mini.eastday.com/a/171201210623679.html',
         # 'http://e.gmw.cn/2017-12/04/content_26998661.htm',
@@ -222,11 +222,15 @@ if __name__ == '__main__':
         # 'http://media.people.com.cn/n1/2016/0228/c40606-28155536.html'
         # 'http://www.c114.com.cn/news/17/a1036615.html'
         # 'http://news.sina.com.cn/sf/news/flfg/2017-12-04/doc-ifypikwt7105025.shtml'
-        'http://app.finance.china.com.cn/stock/quote/daily.php?code=sz002142&day=2018-03-14'
-
+        # 'http://app.finance.china.com.cn/stock/quote/daily.php?code=sz002142&day=2018-03-14'
+        # 'http://world.people.com.cn/n1/2018/0411/c1002-29920252.html'
+        # 'http://www.chinanews.com/gn/2018/04-11/8488731.shtml'
+        'http://www.chinanews.com/gn/2018/04-11/8488731.shtml'
     ]
     for url in urls:
         html = tools.get_html(url)
+        # html, r = tools.get_html_by_requests(url, code = 'gb2312')
+
 
         article_extractor = ArticleExtractor(url, html)
         content = article_extractor.get_content()
