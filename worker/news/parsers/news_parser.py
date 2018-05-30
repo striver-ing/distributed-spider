@@ -35,7 +35,7 @@ def add_root_url(parser_params = {}):
         website_name = task[1]
         website_position = task[2]
         website_url = task[3]
-        website_domain = task[4] or tools.get_domain(website_url)
+        website_domain = tools.get_domain(website_url)
 
         base_parser.add_url('news_urls', SITE_ID, website_url, remark = {'website_name':website_name, 'website_position':website_position, 'website_url':website_url, 'website_domain':website_domain})
 
