@@ -33,8 +33,8 @@ USEFUL_TAG = [ # html 中需要保留的标签
 DAY_REGEXS = [
         '(\d{4}[-|/|.]\d{1,2}[-|/|.]\d{1,2})',
         '(\d{2}[-|/|.]\d{1,2}[-|/|.]\d{1,2})',
-        '(\d{4}年\d{1,2}月\d{1,2}日)',
-        '(\d{2}年\d{1,2}月\d{1,2}日)',
+        '(\d{4}年\s*?\d{1,2}\s*?月\s*?\d{1,2}\s*?日)',
+        '(\d{2}年\s*?\d{1,2}\s*?月\s*?\d{1,2}\s*?日)',
         # '(\d{1,2}月\d{1,2}日)',
         # '(\d{1,2}日)'
     ]
@@ -56,7 +56,7 @@ for day_regex in DAY_REGEXS:
     for time_regex in TIME_REGEXS:
         DAY_TIME_REGEXS.append(day_regex[:-1] + '\s*?' + time_regex[1:])
 
-# DAY_TIME_REGEXS.extend(DAY_REGEXS)
+DAY_TIME_REGEXS.extend(DAY_REGEXS)
 
 # 作者
 AUTHOR_REGEXS = [
