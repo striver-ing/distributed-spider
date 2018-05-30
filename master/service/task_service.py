@@ -36,6 +36,7 @@ class TaskService():
                       from TAB_IOPM_SITE t
                      where classify = 1
                        and t.mointor_status = 701
+                       and t.position != 35
                        and rownum < {page_size})
              where r >= {offset}
         '''.format(page_size = TaskService._offset + TASK_BUFFER_SIZE, offset = TaskService._offset)
