@@ -70,12 +70,12 @@ def get_logger(name = 'log.log', path = ''):
             )
 
     #定义一个RotatingFileHandler，最多备份5个日志文件，每个日志文件最大10M
-    Rthandler = RotatingFileHandler(filename, mode = 'w',  maxBytes=10 * 1024 * 1024,backupCount=20, encoding='utf8')
-    Rthandler.setLevel(LOG_LEVEL)
-    formatter = logging.Formatter(LOG_FORMAT)
-    Rthandler.setFormatter(formatter)
+    # Rthandler = RotatingFileHandler(filename, mode = 'w',  maxBytes=10 * 1024 * 1024,backupCount=20, encoding='utf8')
+    # Rthandler.setLevel(LOG_LEVEL)
+    # formatter = logging.Formatter(LOG_FORMAT)
+    # Rthandler.setFormatter(formatter)
 
-    logger.addHandler(Rthandler)
+    # logger.addHandler(Rthandler)
 
     return logger
 

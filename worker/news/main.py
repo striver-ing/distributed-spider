@@ -26,9 +26,12 @@ def main():
         get_task_url = MASTER_ADDRESS + '/task/get_task'
         print(get_task_url)
         update_task_url = MASTER_ADDRESS + '/task/update_task'
-        tasks = tools.get_json_by_requests(get_task_url)
+        data = tools.get_json_by_requests(get_task_url)
         # tasks = [[209690, '百度新闻', 11, 'http://news.baidu.com/?tn=news', 'news.baidu.com', 271]]
-        print(tasks)
+        print(data)
+        tasks = data.get('tasks', [])
+        parser_count = data.get('thread_count')
+
 
         def begin_callback():
             log.info('\n********** news begin **********')
@@ -55,7 +58,7 @@ def main():
                 log.debug('更新任务状态 已做完！')
 
         # 配置spider
-        spider = Spider(tab_urls = 'news_urls', begin_callback = begin_callback, end_callback = end_callback, parser_params = tasks, delete_tab_urls = True)
+        spider = Spider(tab_urls = 'news_urls', parser_count = parser_count, begin_callback = begin_callback, end_callback = end_callback, parser_params = tasks, delete_tab_urls = True)
 
         # 添加parser
         spider.add_parser(news_parser)

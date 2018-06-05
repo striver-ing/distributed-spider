@@ -17,7 +17,7 @@ from utils.log import log
 import time
 
 class Collector(threading.Thread):
-    def __init__(self, tab_urls):
+    def __init__(self, tab_urls, depth):
         super(Collector, self).__init__()
         self._lock = threading.RLock()
 
@@ -26,7 +26,7 @@ class Collector(threading.Thread):
         self._urls =[]
         self._null_times = 0
         self._tab_urls = tab_urls
-        self._depth = int(tools.get_conf_value('config.conf', "collector", "depth"))
+        self._depth = depth# or int(tools.get_conf_value('config.conf', "collector", "depth"))
         self._max_size = int(tools.get_conf_value('config.conf', "collector", "max_size"))
         self._interval = int(tools.get_conf_value('config.conf', "collector", "sleep_time"))
         self._allowed_null_times = int(tools.get_conf_value('config.conf', "collector", 'allowed_null_times'))

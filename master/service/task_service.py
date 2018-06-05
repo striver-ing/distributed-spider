@@ -19,20 +19,30 @@ import threading
 
 TASK_BUFFER_SIZE = int(tools.get_conf_value('config.conf', 'task', 'task_buffer_size'))
 TASK_COUNT = int(tools.get_conf_value('config.conf', 'task', 'task_count'))
+THREAD_COUNT = 200 #int(tools.get_conf_value('config.conf', 'client', 'thread_count'))
+
 
 class TaskService():
     _task_ring_buff = RingBuff(TASK_BUFFER_SIZE)
     _offset = 1
     _lock = threading.RLock()
+    _spider_start_timestamp = 0
+    _spider_end_timestamp = 0
+    _total_task_size = 0
     _db = OracleDB()
 
     def __init__(self ):
         pass
 
     def load_task(self):
+        if TaskService._offset == 1:
+            log.info('开始新的一轮抓取')
+            TaskService._spider_start_timestamp = tools.get_current_timestamp()
+            TaskService._total_task_size = 0
+
         task_sql = '''
             select *
-              from (select t.id, t.name, t.position, t.url, t.domain, rownum r
+              from (select t.id, t.name, t.position, t.url, t.depth, rownum r
                       from TAB_IOPM_SITE t
                      where classify = 1
                        and t.mointor_status = 701
@@ -44,8 +54,11 @@ class TaskService():
 
         print(task_sql)
         tasks = TaskService._db.find(task_sql)
+        TaskService._total_task_size += len(tasks)
 
         if not tasks:
+            TaskService._spider_end_timestamp = tools.get_current_timestamp()
+            log.info('已做完一轮，共处理网站%s个 抓取%s层 耗时%s'%(TaskService._total_task_size, DEPTH, tools.seconds_to_h_m_s(TaskService._spider_end_timestamp - TaskService._spider_start_timestamp)))
             TaskService._offset = 1
             self.load_task()
 
@@ -59,7 +72,7 @@ class TaskService():
             tasks = TaskService._task_ring_buff.get_data(count)
 
         TaskService._lock.release()
-        return tasks
+        return {'tasks':tasks, 'thread_count':THREAD_COUNT}
 
     def update_task_status(self, tasks, status):
         TaskService._lock.acquire() #加锁

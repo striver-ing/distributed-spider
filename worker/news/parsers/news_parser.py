@@ -14,8 +14,6 @@ SITE_ID = 1
 # 必须定义 网站名
 NAME = '新闻正文提取'
 
-DEPTH = int(tools.get_conf_value('config.conf', "collector", "depth"))
-
 # 必须定义 添加网站信息
 @tools.run_safe_model(__name__)
 def add_site_info():
@@ -36,8 +34,9 @@ def add_root_url(parser_params = {}):
         website_position = task[2]
         website_url = task[3]
         website_domain = tools.get_domain(website_url)
+        spider_depth = task[4]
 
-        base_parser.add_url('news_urls', SITE_ID, website_url, remark = {'website_name':website_name, 'website_position':website_position, 'website_url':website_url, 'website_domain':website_domain})
+        base_parser.add_url('news_urls', SITE_ID, website_url, remark = {'website_name':website_name, 'website_position':website_position, 'website_url':website_url, 'website_domain':website_domain, 'spider_depth':spider_depth})
 
 # 必须定义 解析网址
 def parser(url_info):
@@ -52,6 +51,7 @@ def parser(url_info):
     website_position = remark['website_position']
     website_url = remark['website_url']
     website_domain =  remark['website_domain']
+    spider_depth = remark['spider_depth']
 
     html = tools.get_html(root_url)
     if not html:
@@ -59,7 +59,7 @@ def parser(url_info):
         return
 
     # 近一步取待做url
-    if depth < DEPTH:
+    if depth < spider_depth - 1:
         urls = tools.get_urls(html)
         for url in urls:
             url = tools.get_full_url(website_url, url)
@@ -101,5 +101,5 @@ def parser(url_info):
     base_parser.update_url('news_urls', root_url, Constance.DONE)
 
 if __name__ == '__main__':
-    url_info = {'url': 'http://shuhua.dzwww.com/tplb/201801/t20180103_16864324.htm', 'status': 0, 'remark': {'website_domain': None, 'website_url': 'http://www.dzwww.com/', 'website_position': 15, 'website_name': '山东大众网'}, '_id': '5a5ea26ecdd76b52e8bb745d', 'site_id': 1, 'retry_times': 0, 'depth': 1}
+    url_info = {'status': 0, '_id': '5b151131534465187cf469c8', 'retry_times': 0, 'site_id': 1, 'depth': 1, 'remark': {'website_domain': 'baidu.com', 'website_name': '', 'website_position': None, 'website_url': 'http://news.baidu.com/?tn=news'}, 'url': 'https://baijiahao.baidu.com/s?id=1601748269934604720'}
     parser(url_info)

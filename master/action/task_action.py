@@ -23,8 +23,8 @@ class TaskAction():
         web.header('Content-Type','text/html;charset=UTF-8')
 
         data = json.loads(json.dumps(web.input()))
-        print(name)
-        print(data)
+        client_ip = web.ctx.ip
+        log.info('客户端 %s --> %s'%(client_ip, name))
 
         if name == 'get_task':
             tasks = self.task_service.get_task()
