@@ -24,11 +24,15 @@ class TaskAction():
 
         data = json.loads(json.dumps(web.input()))
         client_ip = web.ctx.ip
-        log.info('客户端 %s --> %s'%(client_ip, name))
 
         if name == 'get_task':
             tasks = self.task_service.get_task()
-            return tools.dumps_json(tasks)
+            tasks = tools.dumps_json(tasks)
+            log.info('''
+                客户端 ip: %s
+                取任务   : %s'''%(client_ip, tasks))
+
+            return tasks
 
         elif name == 'update_task':
             tasks = eval(data.get('tasks', []))

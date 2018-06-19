@@ -246,7 +246,9 @@ if __name__ == '__main__':
         # 'http://tech.ifeng.com/a/20180116/44847498_0.shtml'
         # 'http://tech.ifeng.com/a/20171228/44825006_0.shtml'
         # 'http://news.ifeng.com/a/20180514/58297302_0.shtml'
-        'https://baijiahao.baidu.com/s?id=1601748269934604720'
+        # 'https://baijiahao.baidu.com/s?id=1601748269934604720'
+        # 'http://big5.cntv.cn/gate/big5/news.cctv.com/special/sx/index.shtml'
+        'http://finance.youth.cn/finance_cyxfgsxw/201806/t20180611_11641628.htm'
 
     ]
     for url in urls:

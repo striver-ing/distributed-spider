@@ -156,6 +156,7 @@ def get_unicode_html(html):
     html = converted.unicode_markup
     return html
 
+@log_function_time
 def get_html(url):
     '''
     @summary: 自动处理编码，防止乱码
@@ -253,7 +254,6 @@ def get_html_by_requests(url, headers = '', code = 'utf-8', data = None, proxies
             r and r.close()
 
     return html and len(html) < 1024 * 1024 and html or None, r
-
 
 def get_json_by_requests(url, params = None, headers = '', data = None, proxies = {}):
     json = {}

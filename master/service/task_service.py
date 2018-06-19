@@ -58,7 +58,7 @@ class TaskService():
 
         if not tasks:
             TaskService._spider_end_timestamp = tools.get_current_timestamp()
-            log.info('已做完一轮，共处理网站%s个 抓取%s层 耗时%s'%(TaskService._total_task_size, DEPTH, tools.seconds_to_h_m_s(TaskService._spider_end_timestamp - TaskService._spider_start_timestamp)))
+            log.info('已做完一轮，共处理网站%s个 耗时%s'%(TaskService._total_task_size, tools.seconds_to_h_m_s(TaskService._spider_end_timestamp - TaskService._spider_start_timestamp)))
             TaskService._offset = 1
             self.load_task()
 
