@@ -15,6 +15,8 @@ from utils.log import log
 
 IP        = tools.get_conf_value('config.conf', 'redis', 'ip')
 PORT      = int(tools.get_conf_value('config.conf', 'redis', 'port'))
+DB        = int(tools.get_conf_value('config.conf', 'redis', 'db'))
+USER_PASS = tools.get_conf_value('config.conf', 'redis', 'user_pass')
 
 class Singleton(object):
     def __new__(cls, *args, **kwargs):
@@ -24,19 +26,19 @@ class Singleton(object):
         return cls._inst
 
 
-class RedisDB(Singleton):
-    def __init__(self, ip = IP, port = PORT):
-        super(RedisDB, self).__init__()
+class RedisDB():
+    def __init__(self, ip = IP, port = PORT, db = DB, user_pass = USER_PASS):
+        # super(RedisDB, self).__init__()
 
-        if not hasattr(self,'conn'):
+        if not hasattr(self,'_redis'):
             try:
-                self._redis = redis.Redis(host = ip, port = port, decode_responses=True) # redis默认端口是6379
+                self._redis = redis.Redis(host = ip, port = port, db = db, password = user_pass, decode_responses=True) # redis默认端口是6379
                 self._pipe = self._redis.pipeline(transaction=True) # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipline实现一次请求指定多个命令，并且默认情况下一次pipline 是原子性操作。
 
             except Exception as e:
                 raise
             else:
-                log.debug('连接到数据库 ip:%s  port:%s'%(ip, port))
+                log.debug('连接到redis数据库 ip:%s  port:%s'%(ip, port))
 
     def sadd(self, table, values):
         '''
@@ -99,12 +101,44 @@ class RedisDB(Singleton):
         results, count = self._pipe.execute()
         return results
 
+    def zget_cout(self, table):
+        '''
+        @summary: 获取表数据的数量
+        ---------
+        @param table:
+        ---------
+        @result:
+        '''
+
+        return self._redis.zcard(table)
+
+
     def clear(self, table):
         self._redis.delete(table)
 
 if __name__ == '__main__':
     db = RedisDB()
-    db.clear('name')
+    data = {
+        "url": "http://www.icm9.com/",
+        "status": 0,
+        "remark": {
+            "spider_depth": 3,
+            "website_name": "早间新闻",
+            "website_position": 23,
+            "website_domain": "icm9.com",
+            "website_url": "http://www.icm9.com/"
+        },
+        "depth": 0,
+        "_id": "5b15f33d53446530acf20539",
+        "site_id": 1,
+        "retry_times": 0
+    }
+    print(db.sadd('25:25', data))
+    print(db.zadd('26:26', [data]))
+    # # print(db.sadd('1', 1))
+    # data = db.zget('2')
+    # print(type(data[0]))
+    # db.clear('name')
     # import time
     # start = time.time()
     # # for i in range(10000):

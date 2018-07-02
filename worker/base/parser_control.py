@@ -53,8 +53,6 @@ class  PaserControl(threading.Thread):
                                     deal url    %s
                                     table       %s
                                     '''%(parser.NAME, str(e), url, self._tab_urls))
-
-                                base_parser.update_url(self._tab_urls, url['url'], Constance.EXCEPTION)
                             break
 
                 time.sleep(self._interval)

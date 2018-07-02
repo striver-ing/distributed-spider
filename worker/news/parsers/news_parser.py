@@ -36,11 +36,11 @@ def add_root_url(parser_params = {}):
         website_domain = tools.get_domain(website_url)
         spider_depth = task[4]
 
-        base_parser.add_url('news_urls', SITE_ID, website_url, remark = {'website_name':website_name, 'website_position':website_position, 'website_url':website_url, 'website_domain':website_domain, 'spider_depth':spider_depth})
+        base_parser.add_url(SITE_ID, website_url, remark = {'website_name':website_name, 'website_position':website_position, 'website_url':website_url, 'website_domain':website_domain, 'spider_depth':spider_depth})
 
 # 必须定义 解析网址
+tools.log_function_time(func)
 def parser(url_info):
-    url_info['_id'] = str(url_info['_id'])
     log.debug('处理 \n' + tools.dumps_json(url_info))
 
     root_url = url_info['url']
@@ -55,7 +55,7 @@ def parser(url_info):
 
     html = tools.get_html(root_url)
     if not html:
-        base_parser.update_url('news_urls', root_url, Constance.EXCEPTION)
+        # base_parser.update_url('news_urls', root_url, Constance.EXCEPTION)
         return
 
     # 近一步取待做url
@@ -67,9 +67,9 @@ def parser(url_info):
                 remark['website_name'] = ''
                 remark['website_domain'] = tools.get_domain(url)
                 remark['website_position'] = None
-                base_parser.add_url('news_urls', SITE_ID, url, depth + 1, remark = remark)
+                base_parser.add_url(SITE_ID, url, depth + 1, remark = remark)
             elif website_domain in url:
-                base_parser.add_url('news_urls', SITE_ID, url, depth + 1, remark = remark)
+                base_parser.add_url(SITE_ID, url, depth + 1, remark = remark)
 
     # 解析网页
     content = title = release_time = author = ''
@@ -98,8 +98,8 @@ def parser(url_info):
             self_base_parser.add_news_acticle(uuid, title, author, release_time, website_name, website_domain, website_position, root_url, content)
 
     log.debug('%s 处理完成'%root_url)
-    base_parser.update_url('news_urls', root_url, Constance.DONE)
+    # base_parser.update_url('news_urls', root_url, Constance.DONE)
 
 if __name__ == '__main__':
-    url_info = {'status': 0, '_id': '5b151131534465187cf469c8', 'retry_times': 0, 'site_id': 1, 'depth': 1, 'remark': {'website_domain': 'baidu.com', 'website_name': '', 'website_position': None, 'website_url': 'http://news.baidu.com/?tn=news'}, 'url': 'https://baijiahao.baidu.com/s?id=1601748269934604720'}
+    url_info = {'status': 0, 'retry_times': 0, 'site_id': 1, 'url': 'http://news.baidu.com/?tn=news', 'depth': 0, 'remark': {'website_name': '百度新闻', 'website_position': 11, 'spider_depth': 'news.baidu.com', 'website_url': 'http://news.baidu.com/?tn=news', 'website_domain': 'baidu.com'}}
     parser(url_info)

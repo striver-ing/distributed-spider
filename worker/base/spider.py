@@ -9,11 +9,12 @@ Created on 2017-01-09 10:38
 
 import sys
 sys.path.append('../')
-from db.mongodb import MongoDB
+# from db.mongodb import MongoDB
 import utils.tools as tools
 from base.parser_control import PaserControl
 from base.collector import Collector
 import threading
+from base.url_manager import UrlManager
 
 class Spider(threading.Thread):
     def __init__(self, tab_urls, tab_site = '', tab_content  = '', parser_count = None, depth = None, parser_params = {}, begin_callback = None, end_callback = None, content_unique_key = 'url', delete_tab_urls = False):
@@ -32,19 +33,22 @@ class Spider(threading.Thread):
         super(Spider, self).__init__()
 
         self._tab_urls = tab_urls
+        self._url_manager = UrlManager(tab_urls)
 
-        self._db = MongoDB()
-        if delete_tab_urls: self._db.delete(tab_urls)
+        if delete_tab_urls:self._url_manager.clear_url()
 
-        self._db.set_unique_key(tab_urls, 'url')
-        if tab_site: self._db.set_unique_key(tab_site, 'site_id')
-        if tab_content: self._db.set_unique_key(tab_content, content_unique_key)
+        # self._db = MongoDB()
+        # if delete_tab_urls: self._db.delete(tab_urls)
 
-        #设置索引 加快查询速度
-        self._db.set_ensure_index(tab_urls, 'depth')
-        self._db.set_ensure_index(tab_urls, 'status')
-        if tab_site: self._db.set_ensure_index(tab_site, 'read_status')
-        if tab_content: self._db.set_ensure_index(tab_content, 'read_status')
+        # self._db.set_unique_key(tab_urls, 'url')
+        # if tab_site: self._db.set_unique_key(tab_site, 'site_id')
+        # if tab_content: self._db.set_unique_key(tab_content, content_unique_key)
+
+        # #设置索引 加快查询速度
+        # self._db.set_ensure_index(tab_urls, 'depth')
+        # self._db.set_ensure_index(tab_urls, 'status')
+        # if tab_site: self._db.set_ensure_index(tab_site, 'read_status')
+        # if tab_content: self._db.set_ensure_index(tab_content, 'read_status')
 
         self._collector = Collector(tab_urls, depth)
         self._parsers = []
@@ -83,9 +87,10 @@ class Spider(threading.Thread):
         # 启动parser 的add site 和 add root
         #print(self._parser_params)
         for parser in self._parsers:
-            print(parser)
-            parser.add_site_info()
+            # parser.add_site_info()
             parser.add_root_url(self._parser_params)
+
+        self._url_manager.start()
 
         # 启动collector
         self._collector.add_finished_callback(self._end_callabck)

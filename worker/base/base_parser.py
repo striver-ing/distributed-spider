@@ -11,11 +11,13 @@ sys.path.append('..')
 import init
 
 import base.constance as Constance
+from base.url_manager import UrlManager
 import utils.tools as tools
-from db.mongodb import MongoDB
+# from db.mongodb import MongoDB
 import random
 
-db = MongoDB()
+mongodb = None #MongoDB()
+url_manager = UrlManager('news_urls') # 此处需要传url表名
 
 def get_contained_key(title, content, key1, key2, key3):
     text = title + content
@@ -139,18 +141,19 @@ def get_user_agent():
         return "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36"
 
 def get_site_id(table, site_name):
-    result = db.find(table, {'name':site_name})
+    result = mongodb.find(table, {'name':site_name})
     if result:
         return result[0]['site_id']
     else:
         raise AttributeError('%s表中无%s信息'%(table, site_name))
 
-def add_url(table, site_id, url, depth = 0, remark = '', status = Constance.TODO, retry_times = 0):
+def add_url(site_id, url, depth = 0, remark = '', status = Constance.TODO, retry_times = 0):
     url_dict = {'site_id':site_id, 'url':url, 'depth':depth, 'remark':remark, 'status':status, 'retry_times' : retry_times}
-    return db.add(table, url_dict)
+    # return mongodb.add(table, url_dict)
+    url_manager.put_urls(url_dict)
 
 def update_url(table, url, status, retry_times = 0):
-    db.update(table, {'url':url}, {'status':status, 'retry_times':retry_times})
+    mongodb.update(table, {'url':url}, {'status':status, 'retry_times':retry_times})
 
 def add_website_info(table, site_id, url, name, domain = '', ip = '', address = '', video_license = '', public_safety = '', icp = ''):
     '''
@@ -186,5 +189,5 @@ def add_website_info(table, site_id, url, name, domain = '', ip = '', address = 
         'read_status':0,
         'record_time': tools.get_current_date()
     }
-    db.add(table, site_info)
+    mongodb.add(table, site_info)
 

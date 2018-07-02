@@ -26,36 +26,36 @@ def main():
         get_task_url = MASTER_ADDRESS + '/task/get_task'
         print(get_task_url)
         update_task_url = MASTER_ADDRESS + '/task/update_task'
-        data = tools.get_json_by_requests(get_task_url)
-        # tasks = [[209690, '百度新闻', 11, 'http://news.baidu.com/?tn=news', 'news.baidu.com', 271]]
-        print(data)
-        tasks = data.get('tasks', [])
-        parser_count = data.get('thread_count')
+        # data = tools.get_json_by_requests(get_task_url)
+        tasks = [[209690, '百度新闻', 11, 'http://news.baidu.com/?tn=news',  3]]
+        # print(data)
+        # tasks = data.get('tasks', [])
+        parser_count = 200#data.get('thread_count')
 
 
         def begin_callback():
             log.info('\n********** news begin **********')
             # 更新任务状态 doing
 
-            data = {
-                'tasks':str(tasks),
-                'status':602
-            }
+            # data = {
+            #     'tasks':str(tasks),
+            #     'status':602
+            # }
 
-            if tools.get_json_by_requests(update_task_url, data = data):
-                log.debug('更新任务状态 正在做...')
+            # if tools.get_json_by_requests(update_task_url, data = data):
+            #     log.debug('更新任务状态 正在做...')
 
         def end_callback():
             log.info('\n********** news end **********')
             task_status.is_doing = False
 
-            data = {
-                'tasks':str(tasks),
-                'status':603
-            }
+            # data = {
+            #     'tasks':str(tasks),
+            #     'status':603
+            # }
 
-            if tools.get_json_by_requests(update_task_url, data = data):
-                log.debug('更新任务状态 已做完！')
+            # if tools.get_json_by_requests(update_task_url, data = data):
+            #     log.debug('更新任务状态 已做完！')
 
         # 配置spider
         spider = Spider(tab_urls = 'news_urls', parser_count = parser_count, begin_callback = begin_callback, end_callback = end_callback, parser_params = tasks, delete_tab_urls = True)
