@@ -29,7 +29,7 @@ class Singleton(object):
 
 class MysqlDB(Singleton):
     def __init__(self, ip = IP, port = PORT, db = DB, user_name = USER_NAME, user_pass = USER_PASS):
-        super(MySQL, self).__init__()
+        super(MysqlDB, self).__init__()
 
         if not hasattr(self,'conn'):
             try:
@@ -40,12 +40,16 @@ class MysqlDB(Singleton):
             else:
                 log.debug('连接到数据库 %s'%db)
 
-    def find(self, sql, fetch_one = False):
+    def find(self, sql, limit = 0):
+        count =  self.cursor.execute(sql)
+
         result = []
-        if fetch_one:
-            result =  self.cursor.execute(sql).fetchone()
+        if limit == 1:
+            result = self.cursor.fetchone()
+        elif limit > 1:
+            result = self.cursor.fetchmany(limit)
         else:
-            result =  self.cursor.execute(sql).fetchall()
+            result = self.cursor.fetchall()
 
         return result
 
@@ -93,6 +97,10 @@ class MysqlDB(Singleton):
         else:
             log.debug('%s表创建唯一索引成功 索引为 %s'%(table, key))
 
-    def close(self):
-        self.cursor.close()
-        self.conn.close()
+    # def __del__(self):
+    #     self.cursor.close()
+    #     self.conn.close()
+
+
+if __name__ == '__main__':
+    db = MysqlDB()

@@ -133,18 +133,24 @@ class MongoDB(Singleton):
 
 if __name__ == '__main__':
     mongodb = MongoDB()
-    data = {
-        "site_id" : 1,
-        "remark" : {
-            "website_url" : "http://news.sogou.com/",
-            "spider_depth" : 5,
-            "website_name" : "搜狗新闻",
-            "website_position" : 1,
-            "website_domain" : "sogou.com"
-        },
-        "depth" : 2,
-        "retry_times" : 0,
-        "status" : 2,
-        "url" : "http://news.sogou.com/news?query=%B3%C2%B9%DA%CF%A3"
-    }
-    mongodb.add('news_urls', data)
+    # data = {
+    #     "site_id" : 1,
+    #     "remark" : {
+    #         "website_url" : "http://news.sogou.com/",
+    #         "spider_depth" : 5,
+    #         "website_name" : "搜狗新闻",
+    #         "website_position" : 1,
+    #         "website_domain" : "sogou.com"
+    #     },
+    #     "depth" : 2,
+    #     "retry_times" : 0,
+    #     "status" : 2,
+    #     "url" : "http://news.sogou.com/news?query=%B3%C2%B9%DA%CF%A3"
+    # }
+    # mongodb.add('news_urls', data)
+
+    import time
+    start = time.time()
+    for i in range(1000):
+        mongodb.add('test2', {'pos':i})
+    print(time.time() - start)

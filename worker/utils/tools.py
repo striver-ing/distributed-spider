@@ -865,6 +865,21 @@ def get_md5(source_str):
     m.update(source_str.encode('utf-8'))
     return m.hexdigest()
 
+def get_sha1(*args):
+    '''
+    @summary: 获取唯一的32为值， 用于获取唯一的id
+    ---------
+    @param *args: 参与联合去重的值
+    ---------
+    @result:
+    '''
+    assert args, '参数不能为空'
+
+    sha1 = hashlib.sha1()
+    for arg in args:
+        sha1.update(str(arg).encode())
+    return sha1.hexdigest()
+
 def get_base64(secret, message):
     '''
     @summary: 数字证书签名算法是："HMAC-SHA256"
@@ -906,6 +921,9 @@ def get_uuid(key1 = '', key2 = ''):
         uuid_object = uuid.UUID(bytes=hash[:16], version=3)
 
     return str(uuid_object)
+
+def get_hash(text):
+    return hash(text)
 
 ##################################################
 
