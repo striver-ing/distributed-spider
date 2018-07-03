@@ -69,7 +69,7 @@ class UrlManager(threading.Thread, Singleton):
             depth = url.get('depth', 0)
             max_depth = url.get('remark',{}).get('spider_depth', 0)
             if depth == max_depth - 1: #最后一层 url单独放，之后不需要清空
-                if self._db.sadd(self._table_url_end_depth_dupefilter, url_id):
+                if self._db.sadd(self._table_url_end_depth_dupefilter, url_id) and self._db.sadd(self._table_url_dupefilter, url_id):
                     url_list.append(url)
 
             elif self._db.sadd(self._table_url_dupefilter, url_id):
@@ -77,12 +77,12 @@ class UrlManager(threading.Thread, Singleton):
 
             if len(url_list) > 100:
                 log.debug('添加url到数据库')
-                self._db.zadd(self._table_url, url_list)
+                self._db.lpush(self._table_url, url_list)
                 url_list = []
 
         if url_list:
             log.debug('添加url到数据库')
-            self._db.zadd(self._table_url, url_list)
+            self._db.lpush(self._table_url, url_list)
 
 
 if __name__ == '__main__':

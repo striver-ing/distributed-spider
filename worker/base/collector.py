@@ -48,7 +48,7 @@ class Collector(threading.Thread):
         if len(self._urls) > self._url_count:
             return
 
-        urls_list = self._db.zget(self._tab_urls, start_pos = 0, end_pos = self._url_count)
+        urls_list = self._db.lpop(self._tab_urls, count = self._url_count)
 
         # 存url
         self.put_urls(urls_list)
@@ -70,7 +70,7 @@ class Collector(threading.Thread):
             self._null_times += 1
             if self._null_times >= self._allowed_null_times:
                 #检查数据库中有没有正在做的url
-                urls_doing = self._db.zget_cout(self._tab_urls)
+                urls_doing = self._db.lget_count(self._tab_urls)
                 if urls_doing: # 如果有未做的url 且数量有变化，说明没有卡死
                     print('有未做的url %s'%len(urls_doing))
                     self._null_times = 0
