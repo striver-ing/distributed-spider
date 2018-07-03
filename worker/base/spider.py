@@ -56,7 +56,12 @@ class Spider(threading.Thread):
         self._parser_params = parser_params
 
         self._begin_callback = begin_callback
-        self._end_callabck = end_callback
+        # 扩展end_callback方法
+        def _end_callback():
+            # self._url_manager.stop()
+            if end_callback: end_callback()
+
+        self._end_callabck = _end_callback
 
         self._parser_count = int(tools.get_conf_value('config.conf', 'parser', 'parser_count')) if not parser_count else parser_count
         self._spider_site_name = tools.get_conf_value('config.conf', "spider_site", "spider_site_name").split(',')
@@ -89,8 +94,6 @@ class Spider(threading.Thread):
         for parser in self._parsers:
             # parser.add_site_info()
             parser.add_root_url(self._parser_params)
-
-        self._url_manager.start()
 
         # 启动collector
         self._collector.add_finished_callback(self._end_callabck)

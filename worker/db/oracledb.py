@@ -16,7 +16,7 @@ import datetime
 import os
 os.environ['NLS_LANG'] = 'SIMPLIFIED CHINESE_CHINA.UTF8' # 防止查出的中文乱码
 
-STOP_ORCL = True #禁用oracle
+STOP_ORCL = False #禁用oracle
 
 IP        = tools.get_conf_value('config.conf', 'oracledb', 'ip')
 PORT      = int(tools.get_conf_value('config.conf', 'oracledb', 'port'))

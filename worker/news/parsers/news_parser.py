@@ -39,7 +39,7 @@ def add_root_url(parser_params = {}):
         base_parser.add_url(SITE_ID, website_url, remark = {'website_name':website_name, 'website_position':website_position, 'website_url':website_url, 'website_domain':website_domain, 'spider_depth':spider_depth})
 
 # 必须定义 解析网址
-tools.log_function_time(func)
+@tools.log_function_time
 def parser(url_info):
     log.debug('处理 \n' + tools.dumps_json(url_info))
 
@@ -91,7 +91,7 @@ def parser(url_info):
             position     %s
             url          %s
             content      %s
-            '''%(uuid, title, author, release_time, website_name, website_domain, website_position, root_url, content))
+            '''%(uuid, title, author, release_time, website_name, website_domain, website_position, root_url, '省略...'))
 
         if tools.is_have_chinese(content):
             # 入库

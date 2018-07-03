@@ -13,6 +13,7 @@ import init
 import threading
 import utils.tools as tools
 from db.oracledb import OracleDB
+from db.redisdb import RedisDB
 from utils.log import log
 from utils.ring_buff import RingBuff
 import threading
@@ -30,6 +31,7 @@ class TaskService():
     _spider_end_timestamp = 0
     _total_task_size = 0
     _db = OracleDB()
+    _redisdb = RedisDB()
 
     def __init__(self ):
         pass
@@ -39,6 +41,11 @@ class TaskService():
             log.info('开始新的一轮抓取')
             TaskService._spider_start_timestamp = tools.get_current_timestamp()
             TaskService._total_task_size = 0
+
+            # 清空url表
+            TaskService._redisdb.clear('news:news_urls')
+            TaskService._redisdb.clear('news:news_urls_dupefilter')
+
 
         task_sql = '''
             select *

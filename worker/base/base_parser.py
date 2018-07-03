@@ -17,7 +17,8 @@ import utils.tools as tools
 import random
 
 mongodb = None #MongoDB()
-url_manager = UrlManager('news_urls') # 此处需要传url表名
+url_manager = UrlManager('news:news_urls') # 此处需要传url表名
+url_manager.start()
 
 def get_contained_key(title, content, key1, key2, key3):
     text = title + content

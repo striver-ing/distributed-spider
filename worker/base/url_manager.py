@@ -29,15 +29,21 @@ class UrlManager(threading.Thread, Singleton):
         if not hasattr(self,'_table_url'):
             super(UrlManager, self).__init__()
 
+            self._thread_stop = False
+
             self._urls_deque = collections.deque()
             self._db = RedisDB()
             self._table_url = table_url
             self._table_url_dupefilter = self._table_url + '_dupefilter'
+            self._table_url_end_depth_dupefilter = self._table_url + '_end_depth_dupefilter'
 
     def run(self):
-        while True:
+        while not self._thread_stop:
             self.__add_url_to_db()
             tools.delay_time(1)
+
+    def stop(self):
+        self._thread_stop = True
 
     def put_urls(self, urls):
         urls = urls if isinstance(urls, list) else [urls]
@@ -60,7 +66,13 @@ class UrlManager(threading.Thread, Singleton):
         while self._urls_deque:
             url = self._urls_deque.popleft()
             url_id = tools.get_sha1(url.get('url'))
-            if self._db.sadd(self._table_url_dupefilter, url_id):
+            depth = url.get('depth', 0)
+            max_depth = url.get('remark',{}).get('spider_depth', 0)
+            if depth == max_depth - 1: #最后一层 url单独放，之后不需要清空
+                if self._db.sadd(self._table_url_end_depth_dupefilter, url_id):
+                    url_list.append(url)
+
+            elif self._db.sadd(self._table_url_dupefilter, url_id):
                 url_list.append(url)
 
             if len(url_list) > 100:
@@ -80,7 +92,7 @@ if __name__ == '__main__':
     urls = collections.deque()
     data = {
         "url": "http://www.icm9.com/",
-        "status": 0,
+        "status": 3213,
         "remark": {
             "spider_depth": 3,
             "website_name": "早间新闻",
