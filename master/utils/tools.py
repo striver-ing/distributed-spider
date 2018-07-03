@@ -487,6 +487,10 @@ def dumps_json(json_):
 def print(object):
     pprint(object)
 
+def print_one_line(object):
+    sys.stdout.write(str(object) + "\r")
+    sys.stdout.flush()
+
 def get_json_value(json_object, key):
     '''
     @summary:

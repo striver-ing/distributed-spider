@@ -118,37 +118,6 @@ class RedisDB():
 
 if __name__ == '__main__':
     db = RedisDB()
-    # data = {
-    #     "url": "http://www.icm9.com/",
-    #     "status": 0,
-    #     "remark": {
-    #         "spider_depth": 3,
-    #         "website_name": "早间新闻",
-    #         "website_position": 23,
-    #         "website_domain": "icm9.com",
-    #         "website_url": "http://www.icm9.com/"
-    #     },
-    #     "depth": 0,
-    #     "_id": "5b15f33d53446530acf20539",
-    #     "site_id": 1,
-    #     "retry_times": 0
-    # }
-    # print(db.sadd('25:25', data))
-    # print(db.zadd('26:26', [data]))
-    # # print(db.sadd('1', 1))
-    # data = db.zget('2')
-    # print(type(data[0]))
-    db.clear('news:news_urls_dupefilter')
-    # import time
-    # start = time.time()
-    # # for i in range(10000):
-    # #     db.zadd('test6', i)
-    # db.zadd('test7', list(range(10000)), [1])
-    # print(time.time() - start)
-
-    # db.zadd('test3', '1', 5)
-    # db.zadd('test3', '2', 6)
-    # db.zadd('test3', '3', 4)
-
-    # data = db.zget('test3', 0, 1)
-    # print(data)
+    # db.sadd('test', 1)
+    data = db.zget('test')
+    print(data)

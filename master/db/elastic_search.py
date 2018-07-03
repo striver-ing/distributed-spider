@@ -12,6 +12,7 @@ sys.path.append('../')
 import init
 import utils.tools as tools
 from elasticsearch import Elasticsearch
+import elasticsearch.helpers
 from utils.log import log
 
 ADDRESS = tools.get_conf_value('config.conf', 'elasticsearch', 'address')
@@ -23,16 +24,15 @@ class Singleton(object):
 
         return cls._inst
 
-class ES(Singleton):
+class ES():
     def __init__(self, address = ADDRESS):
-        super(ES, self).__init__()
-        if not hasattr(self,'_es'):
-            try:
-                self._es = Elasticsearch(address.split(','))
-            except Exception as e:
-                raise
-            else:
-                log.debug('连接到Elasticsearch')
+        try:
+            print(address.split(','))
+            self._es = Elasticsearch(address.split(','))
+        except Exception as e:
+            raise
+        else:
+            log.debug('连接到Elasticsearch')
 
     def add(self, table, data, data_id = None, doc_type = ''):
         '''
@@ -48,6 +48,28 @@ class ES(Singleton):
         try:
             table = table.lower()
             self._es.index(index = table, doc_type = doc_type or table ,id = data_id, body = data)
+        except Exception as e:
+            log.error(e)
+            return False
+        else:
+            return True
+
+    def add_batch(self, datas, primary_key, table, doc_type =  ''):
+        try:
+            actions = [
+                {
+                    '_op_type': 'index',
+                    '_index': table,
+                    '_type': doc_type or table,
+                    # '_score':1,
+                    '_id':data[primary_key],
+                    '_source': data
+                }
+                for data in datas
+            ]
+
+            elasticsearch.helpers.bulk(self._es, actions)
+
         except Exception as e:
             log.error(e)
             return False
@@ -71,7 +93,8 @@ class ES(Singleton):
             datas = self._es.get(index = table, doc_type = doc_type, id = data_id)
 
         except Exception as e:
-            log.error(e)
+            # log.error(e)
+            pass
 
         return datas
 
@@ -90,9 +113,10 @@ class ES(Singleton):
 
         try:
             table = table.lower()
-            datas = self._es.search(index = table, body = body)
+            datas = self._es.search(index = table, body = body, request_timeout = 30)
 
         except Exception as e:
+            log.error(e)
 
         return datas
 
@@ -107,16 +131,28 @@ class ES(Singleton):
         ---------
         @result:
         '''
+        try:
+            self._es.update(index = table, doc_type = doc_type or table, body = {"doc": data}, id = data_id)
+        except Exception as e:
+            log.debug(e)
+            return False
 
-
-        self._es.update(index = table, doc_type = doc_type or table, body = {"doc": data}, id = data_id)
+        return True
 
     def delete_by_id(self, table, data_id, doc_type = ''):
         """
         根据给定的id,删除文档
         :return:
         """
-        self._es.delete(index = table, doc_type = doc_type or table, id = data_id)
+
+        try:
+            self._es.delete(index = table, doc_type = doc_type or table, id = data_id)
+        except Exception as e:
+            log.debug(e)
+            return False
+
+        return True
+
 
     def set_mapping(self, table, mapping, doc_type):
         '''
@@ -151,76 +187,3 @@ class ES(Singleton):
 
 if __name__ == '__main__':
     es = ES()
-    # { "create": { "_index": "index1", "_type": "resource", "_id": 1 } }
-    # { "title": "周星驰最新电影" }
-    # { "create": { "_index": "index1", "_type": "resource", "_id": 2 } }
-    # { "title": "周星驰最好看的新电影" }
-    # { "create": { "_index": "index1", "_type": "resource", "_id": 3 } }
-    # { "title": "周星驰最新电影，最好，新电影" }
-    # { "create": { "_index": "index1", "_type": "resource", "_id": 4 } }
-    # { "title": "最最最最好的新新新新电影" }
-    # { "create": { "_index": "index1", "_type": "resource", "_id": 5 } }
-    # { "title": "I'm not happy about the foxes" }
-
-    # es = ES()
-    # es.add('myindex', {'RECORD_TIME':'2017-08-22 08:19:23', 'TITLE':'最最最最好的新新新新电影', 'ids' : '188'})
-
-    # body =  {
-    # }
-
-    # body['TITLE'] = "ccdfdasfd"
-    # es.update_by_id('myindex', 'AV-zaTebI30Cg1dxzSYP', body)
-    # # datas = es.get('tab_iopm_article_info', 14488)
-    # # print(datas)
-
-    # body = {
-    #     "query" : {
-    #         # "match_all" : {
-    #         #     "TITLE" : "最新"
-    #         # }
-
-    #         'match':{
-    #             "TITLE" : "最新"
-    #         }
-    #     }
-    # }
-
-
-    # body = {
-    #     "query":{
-    #         "multi_match":{
-    #             "query":"战狼",
-    #             "fields":["TITLE","CONTENT"]
-    #         }
-    #     },
-
-    #     "range":{
-    #         "release_time":{
-    #             "gt":'2017-08-22'
-    #         }
-    #     }
-    # }
-
-    # body = {
-    #     "query":{
-    #         "filtered":{
-    #             "filter":{
-    #                 "range":{
-    #                     "release_time":{
-    #                         "gt":'2017-08-22'
-    #                     }
-    #                 }
-    #             },
-    #             "query":{
-    #                 "multi_match":{
-    #                     "query":"战狼",
-    #                     "fields":["TITLE","CONTENT"]
-    #                 }
-    #             }
-    #         }
-    #     }
-    # }
-
-    # datas = es.search('myindex', body)
-    # print('\n'*3)
-    # print(tools.dumps_json(datas))
