@@ -112,12 +112,82 @@ class RedisDB():
 
         return self._redis.zcard(table)
 
+    def lpush(self, table, values):
+        if isinstance(values, list):
+            self._pipe.multi()
+            for value in values:
+                self._pipe.rpush(table, value)
+            self._pipe.execute()
+
+        else:
+            return self._redis.rpush(table, values)
+
+    def lpop(self, table, count = 1):
+        '''
+        @summary:
+        ---------
+        @param table:
+        @param count:
+        ---------
+        @result: 返回列表
+        '''
+        datas = []
+
+        count = count if count <= self.lget_count(table) else self.lget_count(table)
+
+        if count:
+            if count > 1:
+                self._pipe.multi()
+                while count:
+                    data = self._pipe.lpop(table)
+                    count -= 1
+                datas = self._pipe.execute()
+
+            else:
+                datas.append(self._redis.lpop(table))
+
+        return datas
+
+    def lget_count(self, table):
+        return self._redis.llen(table)
 
     def clear(self, table):
         self._redis.delete(table)
 
 if __name__ == '__main__':
     db = RedisDB()
-    # db.sadd('test', 1)
-    data = db.zget('test')
+    # data = {
+    #     "url": "http://www.icm9.com/",
+    #     "status": 0,
+    #     "remark": {
+    #         "spider_depth": 3,
+    #         "website_name": "早间新闻",
+    #         "website_position": 23,
+    #         "website_domain": "icm9.com",
+    #         "website_url": "http://www.icm9.com/"
+    #     },
+    #     "depth": 0,
+    #     "_id": "5b15f33d53446530acf20539",
+    #     "site_id": 1,
+    #     "retry_times": 0
+    # }
+    # print(db.sadd('25:25', data))
+    # print(db.zadd('26:26', [data]))
+    # # print(db.sadd('1', 1))
+    data = db.lpop('news:news_urls', 3)
     print(data)
+    # print(type(data[0]))
+    # db.clear('name')
+    # import time
+    # start = time.time()
+    # # for i in range(10000):
+    # #     db.zadd('test6', i)
+    # db.zadd('test7', list(range(10000)), [1])
+    # print(time.time() - start)
+
+    # db.zadd('test3', '1', 5)
+    # db.zadd('test3', '2', 6)
+    # db.zadd('test3', '3', 4)
+
+    # data = db.zget('test3', 0, 1)
+    # print(data)

@@ -48,16 +48,20 @@ class Collector(threading.Thread):
     # @tools.log_function_time
     def __input_data(self):
         if len(self._urls) > self._url_count:
+            log.debug('url 已满 %s'%len(self._urls))
             return
 
         urls_list = self._db.lpop(self._tab_urls, count = self._url_count)
+        if not urls_list:
+            log.debug('未从redis中取到url 等待...')
+        else:
+            # 存url
+            log.debug('添加url到缓存')
+            self.put_urls(urls_list)
 
-        # 存url
-        self.put_urls(urls_list)
-
-        if self.is_all_have_done():
-            log.debug('is_all_have_done end')
-            self.stop()
+        # if self.is_all_have_done():
+        #     log.debug('is_all_have_done end')
+        #     self.stop()
 
     def is_finished(self):
         return self._thread_stop
@@ -85,7 +89,6 @@ class Collector(threading.Thread):
             try:
                 url_info = eval(url_info)
             except Exception as e:
-                log.error('exception %s, url_info = %s'(str(e), url_info))
                 url_info = None
 
             if url_info:

@@ -23,41 +23,25 @@ def add_site_info():
 # 必须定义 添加根url
 @tools.run_safe_model(__name__)
 def add_root_url(parser_params = {}):
-    log.debug('''
-        添加根url
-        parser_params : %s
-        '''%str(parser_params))
+    pass
+    # log.debug('''
+    #     添加根url
+    #     parser_params : %s
+    #     '''%str(parser_params))
 
-    for task in parser_params:
-        website_id = task[0]
-        website_name = task[1]
-        website_position = task[2]
-        website_url = task[3]
-        website_domain = tools.get_domain(website_url)
-        spider_depth = task[4]
+    # for task in parser_params:
+    #     website_id = task[0]
+    #     website_name = task[1]
+    #     website_position = task[2]
+    #     website_url = task[3]
+    #     website_domain = tools.get_domain(website_url)
+    #     spider_depth = task[4]
 
-        base_parser.add_url(SITE_ID, website_url, remark = {'website_name':website_name, 'website_position':website_position, 'website_url':website_url, 'website_domain':website_domain, 'spider_depth':spider_depth})
+    #     base_parser.add_url(SITE_ID, website_url, remark = {'website_name':website_name, 'website_position':website_position, 'website_url':website_url, 'website_domain':website_domain, 'spider_depth':spider_depth})
 
-# 必须定义 解析网址
+#------------ 处理 begin ---------------
 @tools.log_function_time
-def parser(url_info):
-    log.debug('处理 \n' + tools.dumps_json(url_info))
-
-    root_url = url_info['url']
-    depth = url_info['depth']
-    site_id = url_info['site_id']
-    remark = url_info['remark']
-    website_name = remark['website_name']
-    website_position = remark['website_position']
-    website_url = remark['website_url']
-    website_domain =  remark['website_domain']
-    spider_depth = remark['spider_depth']
-
-    html = tools.get_html(root_url)
-    if not html:
-        # base_parser.update_url('news_urls', root_url, Constance.EXCEPTION)
-        return
-
+def add_html_url(html, depth, spider_depth, website_url, website_name, website_domain, remark):
     # 近一步取待做url
     if depth < spider_depth - 1:
         urls = tools.get_urls(html)
@@ -71,7 +55,8 @@ def parser(url_info):
             elif website_domain in url:
                 base_parser.add_url(SITE_ID, url, depth + 1, remark = remark)
 
-    # 解析网页
+@tools.log_function_time
+def parser_article(root_url, html, website_name, website_domain, website_position):
     content = title = release_time = author = ''
     article_extractor = ArticleExtractor(root_url, html)
     content = article_extractor.get_content()
@@ -95,11 +80,43 @@ def parser(url_info):
 
         if tools.is_have_chinese(content):
             # 入库
-            self_base_parser.add_news_acticle(uuid, title, author, release_time, website_name, website_domain, website_position, root_url, content)
+            add_article(uuid, title, author, release_time, website_name, website_domain, website_position, root_url, content)
+
+@tools.log_function_time
+def add_article(uuid, title, author, release_time, website_name, website_domain, website_position, root_url, content):
+    self_base_parser.add_news_acticle(uuid, title, author, release_time, website_name, website_domain, website_position, root_url, content)
+
+#------------- 处理end -----------------
+
+# 必须定义 解析网址
+@tools.log_function_time
+def parser(url_info):
+    log.debug('处理 \n' + tools.dumps_json(url_info))
+
+    root_url = url_info['url']
+    depth = url_info['depth']
+    remark = url_info['remark']
+    website_name = remark['website_name']
+    website_position = remark['website_position']
+    website_url = remark['website_url']
+    website_domain =  remark['website_domain']
+    spider_depth = remark['spider_depth']
+
+    html = tools.get_html(root_url)
+    if not html:
+        log.debug('请求url失败')
+        # base_parser.update_url('news_urls', root_url, Constance.EXCEPTION)
+        return
+
+    # 近一步取待做url
+    add_html_url(html, depth, spider_depth, website_url, website_name, website_domain, remark)
+
+    # 解析网页
+    parser_article(root_url, html, website_name, website_domain, website_position)
 
     log.debug('%s 处理完成'%root_url)
     # base_parser.update_url('news_urls', root_url, Constance.DONE)
 
 if __name__ == '__main__':
-    url_info = {'status': 0, 'retry_times': 0, 'site_id': 1, 'url': 'http://news.baidu.com/?tn=news', 'depth': 0, 'remark': {'website_name': '百度新闻', 'website_position': 11, 'spider_depth': 'news.baidu.com', 'website_url': 'http://news.baidu.com/?tn=news', 'website_domain': 'baidu.com'}}
+    url_info = {'remark': {'website_name': '法制网', 'website_position': 1, 'website_domain': 'legaldaily.com.cn', 'website_url': 'http://www.legaldaily.com.cn/', 'spider_depth': 5}, 'depth': 0, 'retry_times': 0, 'site_id': 1, 'url': 'http://www.legaldaily.com.cn/'}
     parser(url_info)

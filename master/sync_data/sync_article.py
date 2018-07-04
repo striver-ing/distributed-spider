@@ -14,6 +14,7 @@ from db.redisdb import RedisDB
 from db.elastic_search import ES
 import threading
 import utils.tools as tools
+from utils.log import log
 
 SYNC_STEP = 500 # 一次同步的数据量
 
@@ -27,13 +28,16 @@ class SyncArtice(threading.Thread):
 
     def run(self):
         while True:
-            datas = self.get_data_from_redis(SYNC_STEP)
-            if not datas:
-                print('无数据 休眠...')
-            elif self.add_data_to_es(datas):
-                self._sync_count += len(datas)
-                tools.print_one_line('已同步 %d 条数据'%self._sync_count)
-            tools.delay_time(1)
+            try:
+                datas = self.get_data_from_redis(SYNC_STEP)
+                if not datas:
+                    print('无数据 休眠...')
+                elif self.add_data_to_es(datas):
+                    self._sync_count += len(datas)
+                    tools.print_one_line('已同步 %d 条数据'%self._sync_count)
+                tools.delay_time(1)
+            except Exception as e:
+                log.error(e)
 
     def get_data_from_redis(self, count):
         datas = self._redis.zget('news:news_article', end_pos = count)

@@ -148,8 +148,8 @@ def get_site_id(table, site_name):
     else:
         raise AttributeError('%s表中无%s信息'%(table, site_name))
 
-def add_url(site_id, url, depth = 0, remark = '', status = Constance.TODO, retry_times = 0):
-    url_dict = {'site_id':site_id, 'url':url, 'depth':depth, 'remark':remark, 'status':status, 'retry_times' : retry_times}
+def add_url(site_id, url, depth = 0, remark = '', retry_times = 0):
+    url_dict = {'site_id':site_id, 'url':url, 'depth':depth, 'remark':remark, 'retry_times' : retry_times}
     # return mongodb.add(table, url_dict)
     url_manager.put_urls(url_dict)
 
