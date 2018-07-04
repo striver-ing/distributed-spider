@@ -16,15 +16,14 @@ from db.redisdb import RedisDB
 from utils.log import log
 import time
 from base.url_manager import UrlManager
+import collections
 
 class Collector(threading.Thread):
     def __init__(self, tab_urls, depth):
         super(Collector, self).__init__()
-        self._lock = threading.RLock()
-
         self._db = RedisDB()
         self._thread_stop = False
-        self._urls =[]
+        self._urls = collections.deque()
         self._null_times = 0
         self._tab_urls = tab_urls
         self._depth = depth# or int(tools.get_conf_value('config.conf', "collector", "depth"))
@@ -68,7 +67,7 @@ class Collector(threading.Thread):
 
     # 没有可做的url
     def is_all_have_done(self):
-        log.debug('判断是否有未做的url ')
+        log.debug('判断是否有未做的url collector url size = %s | url_manager size = %s'%(len(self._urls), self._url_manager.get_urls_count()))
         if len(self._urls) == 0:
             self._null_times += 1
             if self._null_times >= self._allowed_null_times and self._url_manager.get_urls_count() == 0:
@@ -82,27 +81,23 @@ class Collector(threading.Thread):
 
     # @tools.log_function_time
     def put_urls(self, urls_list):
-        self._lock.acquire() #加锁
-
         for url_info in urls_list:
             try:
                 url_info = eval(url_info)
             except Exception as e:
+                log.error('exception %s, url_info = %s'(str(e), url_info))
                 url_info = None
 
             if url_info:
                 self._urls.append(url_info)
 
-        self._lock.release()
-
     # @tools.log_function_time
     def get_urls(self, count):
-        self._lock.acquire() #加锁
-
-        urls = self._urls[:count]
-        del self._urls[:count]
-
-        self._lock.release()
+        urls = []
+        count = count if count <= len(self._urls) else len(self._urls)
+        while count:
+            urls.append(self._urls.popleft())
+            count -= 1
 
         return urls
 
