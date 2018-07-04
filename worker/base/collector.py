@@ -15,6 +15,7 @@ import utils.tools as tools
 from db.redisdb import RedisDB
 from utils.log import log
 import time
+from base.url_manager import UrlManager
 
 class Collector(threading.Thread):
     def __init__(self, tab_urls, depth):
@@ -30,6 +31,8 @@ class Collector(threading.Thread):
         self._interval = int(tools.get_conf_value('config.conf', "collector", "sleep_time"))
         self._allowed_null_times = int(tools.get_conf_value('config.conf', "collector", 'allowed_null_times'))
         self._url_count = int(tools.get_conf_value('config.conf', "collector", "url_count"))
+
+        self._url_manager = UrlManager(tab_urls)
 
         self._finished_callback = None
 
@@ -54,7 +57,7 @@ class Collector(threading.Thread):
         self.put_urls(urls_list)
 
         if self.is_all_have_done():
-            print('is_all_have_done')
+            log.debug('is_all_have_done end')
             self.stop()
 
     def is_finished(self):
@@ -65,18 +68,11 @@ class Collector(threading.Thread):
 
     # 没有可做的url
     def is_all_have_done(self):
-        print('判断是否有未做的url ')
+        log.debug('判断是否有未做的url ')
         if len(self._urls) == 0:
             self._null_times += 1
-            if self._null_times >= self._allowed_null_times:
-                #检查数据库中有没有正在做的url
-                urls_doing = self._db.lget_count(self._tab_urls)
-                if urls_doing: # 如果有未做的url 且数量有变化，说明没有卡死
-                    print('有未做的url %s'%len(urls_doing))
-                    self._null_times = 0
-                    return False
-                else:
-                    return True
+            if self._null_times >= self._allowed_null_times and self._url_manager.get_urls_count() == 0:
+                return True
             else:
                 return False
         else:
@@ -86,8 +82,18 @@ class Collector(threading.Thread):
 
     # @tools.log_function_time
     def put_urls(self, urls_list):
-        urls_list = [eval(url_info) for url_info in urls_list]
-        self._urls.extend(urls_list)
+        self._lock.acquire() #加锁
+
+        for url_info in urls_list:
+            try:
+                url_info = eval(url_info)
+            except Exception as e:
+                url_info = None
+
+            if url_info:
+                self._urls.append(url_info)
+
+        self._lock.release()
 
     # @tools.log_function_time
     def get_urls(self, count):

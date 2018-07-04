@@ -17,6 +17,7 @@ SEARCH_TASK_SLEEP_TIME = int(tools.get_conf_value('config.conf', 'task', 'search
 def main():
     while True:
         if task_status.is_doing:
+            log.debug('正在做 不取任务')
             tools.delay_time(SEARCH_TASK_SLEEP_TIME)
             continue
 

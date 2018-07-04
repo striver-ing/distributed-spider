@@ -50,6 +50,9 @@ class UrlManager(threading.Thread, Singleton):
         for url in urls:
             self._urls_deque.append(url)
 
+    def get_urls_count(self):
+        return len(self._urls_deque)
+
     def clear_url(self):
         '''
         @summary: 删除redis里的数据
@@ -87,7 +90,7 @@ class UrlManager(threading.Thread, Singleton):
 
 if __name__ == '__main__':
     url_manager = UrlManager('dsfdsafadsf')
-    url_manager.start()
+    # url_manager.start()
 
     urls = collections.deque()
     data = {
@@ -106,3 +109,6 @@ if __name__ == '__main__':
         "retry_times": 0
     }
     url_manager.put_urls(data)
+    url_manager.put_urls(data)
+    url_manager.put_urls(data)
+    print(url_manager.get_urls_count())
