@@ -37,8 +37,11 @@ class ArticleManager(threading.Thread, Singleton):
 
     def run(self):
         while not self._thread_stop:
-            self.__add_article_to_db()
-            tools.delay_time(1)
+            try:
+                self.__add_article_to_db()
+                tools.delay_time(1)
+            except Exception as e:
+                log.error(e)
 
     def stop(self):
         self._thread_stop = True

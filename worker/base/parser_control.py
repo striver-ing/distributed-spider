@@ -43,7 +43,9 @@ class  PaserControl(threading.Thread):
                                     print('超过最大重试数，放弃url = %s'%url['url'] )
                                     base_parser.update_url(self._tab_urls, url['url'], Constance.EXCEPTION)
                                 else:
+                                    begin_time=time.time()
                                     parser.parser(url)
+                                    log.debug("parser.parser run time  = " + str(time.time() - begin_time))
                                 # base_parser.update_url(self._tab_urls, url['url'], Constance.DONE)
                             except Exception as e:
                                 log.error('''
