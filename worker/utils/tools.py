@@ -156,7 +156,7 @@ def get_unicode_html(html):
     html = converted.unicode_markup
     return html
 
-@log_function_time
+# @log_function_time
 def get_html(url):
     '''
     @summary: 自动处理编码，防止乱码
@@ -858,6 +858,20 @@ def delay_time(sleep_time = 160):
     '''
 
     time.sleep(sleep_time)
+
+def seconds_to_h_m_s(seconds):
+    '''
+    @summary: 将秒转为时分秒
+    ---------
+    @param seconds:
+    ---------
+    @result: 08:23:00
+    '''
+
+    m, s = divmod(seconds, 60)
+    h, m = divmod(m, 60)
+
+    return '%02d:%02d:%02d'%(h, m, s)
 
 ################################################
 def get_md5(source_str):

@@ -41,10 +41,9 @@ class UrlManager(threading.Thread, Singleton):
         while not self._thread_stop:
             try:
                 self.__add_url_to_db()
+                tools.delay_time(1)
             except Exception as e:
                 log.error(e)
-
-            tools.delay_time(1)
 
     def stop(self):
         self._thread_stop = True
@@ -70,33 +69,26 @@ class UrlManager(threading.Thread, Singleton):
 
     def __add_url_to_db(self):
         url_list = []
-        prioritys = []
-
         while self._urls_deque:
             url = self._urls_deque.popleft()
             url_id = tools.get_sha1(url.get('url'))
             depth = url.get('depth', 0)
-
             max_depth = url.get('remark',{}).get('spider_depth', 0)
-            # 为了获取每层数量，指纹url暂时采用zset，且先校验指纹url，后校验最后一层url，不需要获取每层url时建议采用set存储，且先校验最后一层url
             if depth == max_depth - 1: #最后一层 url单独放，之后不需要清空
-                if self._db.zadd(self._table_url_dupefilter, url_id, depth) and self._db.sadd(self._table_url_end_depth_dupefilter, url_id):
+                if self._db.sadd(self._table_url_end_depth_dupefilter, url_id) and self._db.sadd(self._table_url_dupefilter, url_id):
                     url_list.append(url)
-                    prioritys.append(depth)
 
-            elif self._db.zadd(self._table_url_dupefilter, url_id, depth):
+            elif self._db.sadd(self._table_url_dupefilter, url_id):
                 url_list.append(url)
-                prioritys.append(depth)
 
             if len(url_list) > 100:
                 log.debug('添加url到数据库')
-                self._db.zadd(self._table_url, url_list, prioritys)
+                self._db.lpush(self._table_url, url_list)
                 url_list = []
-                prioritys = []
 
         if url_list:
             log.debug('添加url到数据库')
-            self._db.zadd(self._table_url, url_list, prioritys)
+            self._db.lpush(self._table_url, url_list)
 
 
 if __name__ == '__main__':

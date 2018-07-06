@@ -61,11 +61,11 @@ class RedisDB():
 
     def zadd(self, table, values,  prioritys = 0):
         '''
-        @summary: 使用有序set集合存储数据， 去重
+        @summary: 使用有序set集合存储数据， 去重(值存在更新)
         ---------
         @param table:
         @param values: 值； 支持list 或 单个值
-        @param prioritys: 优先级； double类型，支持list 或 单个值。 根据此字段的值来排序, 值越大越优先。 可不传值，默认value的优先级为0
+        @param prioritys: 优先级； double类型，支持list 或 单个值。 根据此字段的值来排序, 值越小越优先。 可不传值，默认value的优先级为0
         ---------
         @result:若库中存在 返回0，否则入库，返回1。 批量添加返回None
         '''
@@ -77,23 +77,24 @@ class RedisDB():
 
             self._pipe.multi()
             for value, priority in zip(values, prioritys):
-                self._pipe.zadd(table, value, -priority)
+                self._pipe.zadd(table, value, priority)
             self._pipe.execute()
 
         else:
-            return self._redis.zadd(table, values, -prioritys)
+            return self._redis.zadd(table, values, prioritys)
 
-    def zget(self, table, start_pos = 0, end_pos = 0, is_pop = True):
+    def zget(self, table, count = 0, is_pop = True):
         '''
         @summary: 从有序set集合中获取数据
         ---------
         @param table:
-        @param start_pos:开始位置(包含)
-        @param end_pos:结束位置（包含）；如 0,1 则获取下标0到1的数据，下标为1的数据也返回
+        @param count: 数量
         @param is_pop:获取数据后，是否在原set集合中删除，默认是
         ---------
-        @result:
+        @result: 列表
         '''
+        start_pos = 0 # 包含
+        end_pos = 0 if count == 0 else count - 1 # 包含
 
         self._pipe.multi() # 标记事务的开始 参考 http://www.runoob.com/redis/redis-transactions.html
         self._pipe.zrange(table, start_pos, end_pos) # 取值
@@ -101,16 +102,21 @@ class RedisDB():
         results, count = self._pipe.execute()
         return results
 
-    def zget_cout(self, table):
+    def zget_count(self, table, priority_min = None, priority_max = None):
         '''
         @summary: 获取表数据的数量
         ---------
         @param table:
+        @param priority_min:优先级范围 最小值（包含）
+        @param priority_max:优先级范围 最大值（包含）
         ---------
         @result:
         '''
 
-        return self._redis.zcard(table)
+        if priority_min != None and priority_max != None:
+            return self._redis.zcount(table, priority_min, priority_max)
+        else:
+            return self._redis.zcard(table)
 
     def lpush(self, table, values):
         if isinstance(values, list):
@@ -174,8 +180,12 @@ if __name__ == '__main__':
     # print(db.sadd('25:25', data))
     # print(db.zadd('26:26', [data]))
     # # print(db.sadd('1', 1))
-    data = db.lpop('news:news_urls', 3)
-    print(data)
+    db.zadd('news_urls', '1', 1)
+    db.zadd('news_urls', '2', 1)
+    db.zadd('news_urls', '3', 2)
+
+    count = db.zget_count('news_urls', 2, 2)
+    print(count)
     # print(type(data[0]))
     # db.clear('name')
     # import time
@@ -189,5 +199,5 @@ if __name__ == '__main__':
     # db.zadd('test3', '2', 6)
     # db.zadd('test3', '3', 4)
 
-    # data = db.zget('test3', 0, 1)
-    # print(data)
+    data = db.zget('news_urls', 2)
+    print(data)

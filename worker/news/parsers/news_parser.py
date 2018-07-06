@@ -7,7 +7,6 @@ import init
 import utils.tools as tools
 from utils.log import log
 import base.constance as Constance
-import time
 from extractor.article_extractor import ArticleExtractor
 # print(article_extractor.article_extractor)
 # 必须定义 网站id
@@ -41,9 +40,9 @@ def add_root_url(parser_params = {}):
     #     base_parser.add_url(SITE_ID, website_url, remark = {'website_name':website_name, 'website_position':website_position, 'website_url':website_url, 'website_domain':website_domain, 'spider_depth':spider_depth})
 
 #------------ 处理 begin ---------------
-@tools.log_function_time
+# @tools.log_function_time
 def parser_url_info(url_info):
-    log.debug('处理 \n' + tools.dumps_json(url_info))
+    log.info('处理 \n' + tools.dumps_json(url_info))
 
     root_url = url_info['url']
     depth = url_info['depth']
@@ -56,7 +55,7 @@ def parser_url_info(url_info):
 
     return root_url, depth, remark, website_name, website_position, website_url, website_domain, spider_depth
 
-@tools.log_function_time
+# @tools.log_function_time
 def add_html_url(html, depth, spider_depth, website_url, website_name, website_domain, remark):
     # 近一步取待做url
     if depth < spider_depth - 1:
@@ -71,7 +70,7 @@ def add_html_url(html, depth, spider_depth, website_url, website_name, website_d
             elif website_domain in url:
                 base_parser.add_url(SITE_ID, url, depth + 1, remark = remark)
 
-@tools.log_function_time
+# @tools.log_function_time
 def parser_article(root_url, html, website_name, website_domain, website_position):
     content = title = release_time = author = ''
     article_extractor = ArticleExtractor(root_url, html)
@@ -82,7 +81,7 @@ def parser_article(root_url, html, website_name, website_domain, website_positio
         author = article_extractor.get_author()
         uuid = tools.get_uuid(title, website_domain) if title != website_name else tools.get_uuid(root_url, ' ')
 
-        log.debug('''
+        log.info('''
             uuid         %s
             title        %s
             author       %s
@@ -98,35 +97,28 @@ def parser_article(root_url, html, website_name, website_domain, website_positio
             # 入库
             add_article(uuid, title, author, release_time, website_name, website_domain, website_position, root_url, content)
 
-@tools.log_function_time
+# @tools.log_function_time
 def add_article(uuid, title, author, release_time, website_name, website_domain, website_position, root_url, content):
     self_base_parser.add_news_acticle(uuid, title, author, release_time, website_name, website_domain, website_position, root_url, content)
 
 #------------- 处理end -----------------
 
 # 必须定义 解析网址
-@tools.log_function_time
+# @tools.log_function_time
 def parser(url_info):
     root_url, depth, remark, website_name, website_position, website_url, website_domain, spider_depth = parser_url_info(url_info)
-    began_time = time.time()
     html = tools.get_html(root_url)
     if not html:
         log.debug('请求url失败')
         # base_parser.update_url('news_urls', root_url, Constance.EXCEPTION)
         return
-    end_time = time.time()
-    log.debug(" get html time  = " + str(end_time - began_time))
-    bi_time=time.time()
 
     # 近一步取待做url
     add_html_url(html, depth, spider_depth, website_url, website_name, website_domain, remark)
-    began_time = time.time()
 
-    log.debug(" add url time  = " + str(began_time-end_time))
     # 解析网页
     parser_article(root_url, html, website_name, website_domain, website_position)
-    end_time = time.time()
-    log.debug(" parser_article  = " + str(end_time - began_time))
+
 if __name__ == '__main__':
     url_info = {'remark': {'website_name': '法制网', 'website_position': 1, 'website_domain': 'legaldaily.com.cn', 'website_url': 'http://www.legaldaily.com.cn/', 'spider_depth': 5}, 'depth': 0, 'retry_times': 0, 'site_id': 1, 'url': 'http://www.legaldaily.com.cn/'}
     parser(url_info)

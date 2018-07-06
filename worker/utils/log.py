@@ -4,7 +4,7 @@ import os
 from logging.handlers import BaseRotatingHandler
 
 LOG_FORMAT  = '%(thread)d %(threadName)s %(asctime)s %(filename)s %(funcName)s [line:%(lineno)d] %(levelname)s %(message)s'
-LOG_LEVEL   = logging.DEBUG
+LOG_LEVEL   = logging.INFO
 
 # 重写 RotatingFileHandler 自定义log的文件名
 # 原来 xxx.log xxx.log.1 xxx.log.2 xxx.log.3 文件由近及远
@@ -70,12 +70,12 @@ def get_logger(name = 'log.log', path = ''):
             )
 
     #定义一个RotatingFileHandler，最多备份5个日志文件，每个日志文件最大10M
-    Rthandler = RotatingFileHandler(filename, mode = 'w',  maxBytes=10 * 1024 * 1024,backupCount=20, encoding='utf8')
-    Rthandler.setLevel(LOG_LEVEL)
-    formatter = logging.Formatter(LOG_FORMAT)
-    Rthandler.setFormatter(formatter)
+    # Rthandler = RotatingFileHandler(filename, mode = 'w',  maxBytes=10 * 1024 * 1024,backupCount=20, encoding='utf8')
+    # Rthandler.setLevel(LOG_LEVEL)
+    # formatter = logging.Formatter(LOG_FORMAT)
+    # Rthandler.setFormatter(formatter)
 
-    logger.addHandler(Rthandler)
+    # logger.addHandler(Rthandler)
 
     return logger
 

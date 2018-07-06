@@ -14,6 +14,7 @@ import utils.tools as tools
 from db.oracledb import OracleDB
 from db.redisdb import RedisDB
 from utils.log import log
+import manager.statistic_article_count as statistic_article_count
 
 ONE_PAGE_SIZE = 1000 # 一次取的任务数
 CHECK_HAVE_TASK_SLEEP_TIME = 10
@@ -35,7 +36,24 @@ class TaskManager():
         @result:
         '''
 
-        return self._redisdb.lget_count(self._news_url_table)
+        return self._redisdb.zget_count(self._news_url_table)
+
+    def get_ever_depth_count(self, total_depth = 5):
+        '''
+        @summary:
+        ---------
+        @param total_depth: 不包含。 以客户角度的层数
+        ---------
+        @result:
+        '''
+
+        depth_count_info = {}
+        for depth in range(total_depth):
+            key = '第%s层url数'% (depth + 1)
+            depth_count_info[key] = self._redisdb.zget_count(self._news_urls_dupefilter, priority_min = depth, priority_max = depth)
+
+        depth_count_info['总url数'] = self._redisdb.zget_count(self._news_urls_dupefilter)
+        return depth_count_info
 
     def get_task_from_oracle(self):
         tasks = []
@@ -80,8 +98,8 @@ class TaskManager():
             url = task.get('url')
             if url:
                 url_id = tools.get_sha1(url)
-                if self._redisdb.sadd(self._news_urls_dupefilter, url_id):
-                    self._redisdb.lpush(self._news_url_table, task)
+                if self._redisdb.zadd(self._news_urls_dupefilter, url_id, prioritys = 0):
+                    self._redisdb.zadd(self._news_url_table, task, prioritys = 0)
 
     def clear_task(self):
         # 清空url指纹表
@@ -90,18 +108,60 @@ class TaskManager():
 def monitor_task():
     task_manager = TaskManager()
     total_time = 0
+
+    task_count = 0
+    begin_time = None
+    end_time = None
+    spend_hours = None
+
+    is_show_start_tip = False
+    is_show_have_task = False
+
     while True:
         is_have_task = task_manager.is_have_task()
         if not is_have_task:
-            log.debug('redis 中连续%s秒无任务， 休眠%s秒后再检查'%(total_time, CHECK_HAVE_TASK_SLEEP_TIME))
+            if not is_show_start_tip:
+                log.info('开始监控任务池...')
+                is_show_start_tip =  True
+
             total_time += CHECK_HAVE_TASK_SLEEP_TIME
             tools.delay_time(CHECK_HAVE_TASK_SLEEP_TIME)
         else:
+            if not is_show_have_task:
+                log.info('任务池中有任务，work可以正常工作')
+                is_show_have_task = True
+
             total_time = 0
             tools.delay_time(CHECK_HAVE_TASK_SLEEP_TIME)
 
         if total_time > MAX_NULL_TASK_TIME:
-            log.debug('redis 中连续%s秒无任务，超过允许最大等待%s秒 开始添加任务'%(total_time, MAX_NULL_TASK_TIME))
+            is_show_start_tip = False
+            is_show_have_task = False
+
+            # 结束一轮 做些统计
+            if begin_time:
+                # 统计时间
+                end_time = tools.timestamp_to_date(tools.get_current_timestamp() - MAX_NULL_TASK_TIME)
+                spend_time = tools.date_to_timestamp(end_time) - tools.date_to_timestamp(begin_time)
+                spend_hours = tools.seconds_to_h_m_s(spend_time)
+
+                # 统计url数量
+                depth_count_info = task_manager.get_ever_depth_count(5)
+
+                # 统计文章数量
+                article_count_msg = statistic_article_count.get_article_count_msg(begin_time, end_time)
+
+                log.info('''
+                    ------- 已做完一轮 --------
+                    \r开始时间：%s
+                    \r结束时间：%s
+                    \r耗时：%s
+                    \r网站数量：%s
+                    \rurl数量信息：%s
+                    \r文章数量信息：%s
+                    '''%(begin_time, end_time, spend_hours, task_count, tools.dumps_json(depth_count_info), article_count_msg))
+
+            log.info('redis 中连续%s秒无任务，超过允许最大等待%s秒 开始添加任务'%(total_time, MAX_NULL_TASK_TIME))
             # 删除url指纹
             task_manager.clear_task()
             # 取任务
@@ -110,7 +170,8 @@ def monitor_task():
                 task_manager.add_task_to_redis(tasks)
                 task_count = task_manager.is_have_task()
                 if task_count:
-                    log.debug('添加任务到redis中成功 共添加%s条任务。 work开始工作'%(task_count))
+                    begin_time = tools.get_current_date()
+                    log.info('添加任务到redis中成功 共添加%s条任务。 work开始工作'%(task_count))
             else:
                 log.error('未从oracle中取到任务')
 
@@ -120,4 +181,3 @@ if __name__ == '__main__':
     # task = task_manager.get_task_from_oracle()
     # task_count = task_manager.is_have_task()
     # print(task_count)
-

@@ -29,7 +29,8 @@ class  PaserControl(threading.Thread):
         while True:
             try:
                 urls = self._collector.get_urls(self._url_count)
-                # log.debug("取到的url大小 %d"%len(urls))
+                if not urls:
+                    time.sleep(1)
 
                 # 判断是否结束
                 if self._collector.is_finished():
@@ -40,12 +41,10 @@ class  PaserControl(threading.Thread):
                         if parser.SITE_ID == url['site_id']:
                             try:
                                 if url.get('retry_times', 0) > MAX_RETRY_TIMES:
-                                    print('超过最大重试数，放弃url = %s'%url['url'] )
+                                    log.info('超过最大重试数，放弃url = %s'%url['url'] )
                                     base_parser.update_url(self._tab_urls, url['url'], Constance.EXCEPTION)
                                 else:
-                                    begin_time=time.time()
                                     parser.parser(url)
-                                    log.debug("parser.parser run time  = " + str(time.time() - begin_time))
                                 # base_parser.update_url(self._tab_urls, url['url'], Constance.DONE)
                             except Exception as e:
                                 log.error('''
@@ -57,7 +56,7 @@ class  PaserControl(threading.Thread):
                                     '''%(parser.NAME, str(e), url, self._tab_urls))
                             break
 
-                time.sleep(self._interval)
+                # time.sleep(self._interval)
             except Exception as e:
                 log.debug(e)
 

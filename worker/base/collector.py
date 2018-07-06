@@ -35,6 +35,8 @@ class Collector(threading.Thread):
 
         self._finished_callback = None
 
+        self._is_show_wait = False
+
     def run(self):
         while not self._thread_stop:
             self.__input_data()
@@ -47,17 +49,19 @@ class Collector(threading.Thread):
 
     # @tools.log_function_time
     def __input_data(self):
-        if len(self._urls) > self._url_count:
-            log.debug('url 已满 %s'%len(self._urls))
+        if self._urls:
+            log.debug('url 未处理完，不取url， url数量 = %s'%len(self._urls))
             return
 
-        urls_list = self._db.lpop(self._tab_urls, count = self._url_count)
+        urls_list = self._db.zget(self._tab_urls, count = self._url_count)
         if not urls_list:
-            log.debug('未从redis中取到url 等待...')
+            if not self._is_show_wait:
+                log.info('等待任务...')
+                self._is_show_wait = True
         else:
             # 存url
-            log.debug('添加url到缓存')
             self.put_urls(urls_list)
+            self._is_show_wait = False
 
         # if self.is_all_have_done():
         #     log.debug('is_all_have_done end')
@@ -71,7 +75,7 @@ class Collector(threading.Thread):
 
     # 没有可做的url
     def is_all_have_done(self):
-        log.debug('判断是否有未做的url collector url size = %s | url_manager size = %s'%(len(self._urls), self._url_manager.get_urls_count()))
+        # log.debug('判断是否有未做的url collector url size = %s | url_manager size = %s'%(len(self._urls), self._url_manager.get_urls_count()))
         if len(self._urls) == 0:
             self._null_times += 1
             if self._null_times >= self._allowed_null_times and self._url_manager.get_urls_count() == 0:
