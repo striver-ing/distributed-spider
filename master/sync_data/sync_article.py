@@ -27,12 +27,16 @@ class SyncArtice(threading.Thread):
         self._sync_count = 0
 
     def run(self):
+        is_show_tip = False
         while True:
             try:
                 datas = self.get_data_from_redis(SYNC_STEP)
                 if not datas:
-                    print('无数据 休眠...')
+                    if not is_show_tip:
+                        print('\n{time} 无数据 休眠...    '.format(time = tools.get_current_date()))
+                        is_show_tip = True
                 elif self.add_data_to_es(datas):
+                    is_show_tip = False
                     self._sync_count += len(datas)
                     tools.print_one_line('已同步 %d 条数据'%self._sync_count)
                 tools.delay_time(1)
