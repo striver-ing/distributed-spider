@@ -13,8 +13,13 @@ import init
 import utils.tools as tools
 from db.oracledb import OracleDB
 from db.redisdb import RedisDB
-from utils.log import log
+from utils.log import get_logger
 import manager.statistic_article_count as statistic_article_count
+import os
+
+PROJECT_PATH = os.getcwd()
+PROJECT_NAME = PROJECT_PATH[PROJECT_PATH.rfind('\\') + 1:]
+log = get_logger(name = 'task_manager.log', path = PROJECT_PATH + '\\log\\')
 
 ONE_PAGE_SIZE = 1000 # 一次取的任务数
 CHECK_HAVE_TASK_SLEEP_TIME = 10
@@ -167,6 +172,7 @@ def monitor_task():
             # 取任务
             tasks = task_manager.get_task_from_oracle()
             if tasks:
+                total_time = 0
                 task_manager.add_task_to_redis(tasks)
                 task_count = task_manager.is_have_task()
                 if task_count:

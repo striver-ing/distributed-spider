@@ -131,7 +131,6 @@ for STOP_LOG in STOP_LOGS:
 #日志级别大小关系为：critical > error > warning > info > debug
 
 import os
-PROJECT_NAME = 'master'
-CURRENT_PATH = os.getcwd()
-PROJECT_PATH = CURRENT_PATH[:CURRENT_PATH.find(PROJECT_NAME) + len(PROJECT_NAME)]
-log= get_logger(PROJECT_NAME + '.log', PROJECT_PATH + '\\log\\')
+PROJECT_PATH = os.getcwd()
+PROJECT_NAME = PROJECT_PATH[PROJECT_PATH.rfind('\\') + 1:]
+log = get_logger(PROJECT_NAME + '.log', PROJECT_PATH + '\\log\\')
