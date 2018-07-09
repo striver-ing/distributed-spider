@@ -39,7 +39,11 @@ class Collector(threading.Thread):
 
     def run(self):
         while not self._thread_stop:
-            self.__input_data()
+            try:
+                self.__input_data()
+            except Exception as e:
+                log.error(e)
+
             time.sleep(self._interval)
 
     def stop(self):

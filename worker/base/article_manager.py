@@ -42,6 +42,7 @@ class ArticleManager(threading.Thread, Singleton):
             except Exception as e:
                 log.error(e)
 
+            log.debug('缓存中文章数量 %s'%len(self._articles_deque))
             tools.delay_time(1)
 
     def stop(self):
@@ -67,12 +68,12 @@ class ArticleManager(threading.Thread, Singleton):
             article_list.append(article)
             if len(article_list) > 100:
                 log.debug('添加article到数据库')
-                self._db.zadd(self._table_article, article_list)
+                self._db.sadd(self._table_article, article_list)
                 article_list = []
 
         if article_list:
             log.debug('添加article到数据库')
-            self._db.zadd(self._table_article, article_list)
+            self._db.sadd(self._table_article, article_list)
 
 
 if __name__ == '__main__':

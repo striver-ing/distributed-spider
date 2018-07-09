@@ -44,7 +44,7 @@ class SyncArtice(threading.Thread):
                 log.error(e)
 
     def get_data_from_redis(self, count):
-        datas = self._redis.zget('news:news_article', count = count)
+        datas = self._redis.sget('news:news_article', count = count)
         return_datas = []
         for data in datas:
             data = eval(data)

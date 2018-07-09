@@ -44,6 +44,7 @@ class UrlManager(threading.Thread, Singleton):
             except Exception as e:
                 log.error(e)
 
+            log.debug('缓存url数量 %s'%len(self._urls_deque))
             tools.delay_time(1)
 
     def stop(self):
@@ -78,15 +79,18 @@ class UrlManager(threading.Thread, Singleton):
             depth = url.get('depth', 0)
 
             max_depth = url.get('remark',{}).get('spider_depth', 0)
-            # 为了获取每层数量，指纹url暂时采用zset，且先校验指纹url，后校验最后一层url，不需要获取每层url时建议采用set存储，且先校验最后一层url
             if depth == max_depth - 1: #最后一层 url单独放，之后不需要清空
-                if self._db.zadd(self._table_url_dupefilter, url_id, depth) and self._db.sadd(self._table_url_end_depth_dupefilter, url_id):
+                if self._db.sadd(self._table_url_end_depth_dupefilter, url_id) and self._db.sadd(self._table_url_dupefilter, url_id):
                     url_list.append(url)
                     prioritys.append(depth)
+                    # 统计每层的url数量，将url_id添加到每层的表，不做统计时可注释掉
+                    self._db.sadd(self._table_url_dupefilter + str(depth), url_id)
 
-            elif self._db.zadd(self._table_url_dupefilter, url_id, depth):
+            elif self._db.sadd(self._table_url_dupefilter, url_id):
                 url_list.append(url)
                 prioritys.append(depth)
+                # 统计每层的url数量，将url_id添加到每层的表，不做统计时可注释掉
+                self._db.sadd(self._table_url_dupefilter + str(depth), url_id)
 
             if len(url_list) > 100:
                 log.debug('添加url到数据库')

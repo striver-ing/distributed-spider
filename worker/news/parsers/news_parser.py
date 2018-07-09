@@ -109,7 +109,6 @@ def parser(url_info):
     root_url, depth, remark, website_name, website_position, website_url, website_domain, spider_depth = parser_url_info(url_info)
     html = tools.get_html(root_url)
     if not html:
-        log.debug('请求url失败')
         # base_parser.update_url('news_urls', root_url, Constance.EXCEPTION)
         return
 

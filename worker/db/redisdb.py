@@ -59,6 +59,29 @@ class RedisDB():
         else:
             return self._redis.sadd(table, values)
 
+    def sget(self, table, count = 0, is_pop = True):
+        datas = []
+        if is_pop:
+            count = count if count <= self.sget_count(table) else self.sget_count(table)
+            if count:
+                if count > 1:
+                    self._pipe.multi()
+                    while count:
+                        data = self._pipe.spop(table)
+                        count -= 1
+                    datas = self._pipe.execute()
+
+                else:
+                    datas.append(self._redis.spop(table))
+
+        else:
+            datas =  self._redis.srandmember(table, count)
+
+        return datas
+
+    def sget_count(self, table):
+        return self._redis.scard(table)
+
     def zadd(self, table, values,  prioritys = 0):
         '''
         @summary: 使用有序set集合存储数据， 去重(值存在更新)
@@ -161,7 +184,7 @@ class RedisDB():
         self._redis.delete(table)
 
 if __name__ == '__main__':
-    db = RedisDB()
+    db = RedisDB(ip = 'localhost')
     # data = {
     #     "url": "http://www.icm9.com/",
     #     "status": 0,
@@ -180,11 +203,14 @@ if __name__ == '__main__':
     # print(db.sadd('25:25', data))
     # print(db.zadd('26:26', [data]))
     # # print(db.sadd('1', 1))
-    db.zadd('news_urls', '1', 1)
-    db.zadd('news_urls', '2', 1)
-    db.zadd('news_urls', '3', 2)
-
-    count = db.zget_count('news_urls', 2, 2)
+    db.sadd('test',1)
+    db.sadd('test',2)
+    db.sadd('test',3)
+    count = db.sget_count('test')
+    print(count)
+    data = db.sget('test', 1)
+    print(data)
+    count = db.sget_count('test')
     print(count)
     # print(type(data[0]))
     # db.clear('name')
@@ -198,6 +224,3 @@ if __name__ == '__main__':
     # db.zadd('test3', '1', 5)
     # db.zadd('test3', '2', 6)
     # db.zadd('test3', '3', 4)
-
-    data = db.zget('news_urls', 2)
-    print(data)

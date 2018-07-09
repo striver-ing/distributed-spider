@@ -25,7 +25,6 @@ ONE_PAGE_SIZE = 1000 # 一次取的任务数
 CHECK_HAVE_TASK_SLEEP_TIME = 10
 MAX_NULL_TASK_TIME =10 * 60  # 连续n秒内task队列都为空，则视为跑完一轮
 
-
 class TaskManager():
     def __init__(self):
         self._oracledb = OracleDB()
@@ -33,7 +32,7 @@ class TaskManager():
         self._news_url_table = 'news:news_urls'
         self._news_urls_dupefilter = 'news:news_urls_dupefilter'
 
-    def is_have_task(self):
+    def get_task_count(self):
         '''
         @summary: redis 中是否有待做的url
         ---------
@@ -53,11 +52,13 @@ class TaskManager():
         '''
 
         depth_count_info = {}
+        total_count = 0
         for depth in range(total_depth):
             key = '第%s层url数'% (depth + 1)
-            depth_count_info[key] = self._redisdb.zget_count(self._news_urls_dupefilter, priority_min = depth, priority_max = depth)
+            depth_count_info[key] = self._redisdb.sget_count(self._news_urls_dupefilter  + str(depth))
+            total_count += depth_count_info[key]
 
-        depth_count_info['总url数'] = self._redisdb.zget_count(self._news_urls_dupefilter)
+        depth_count_info['总url数'] = total_count
         return depth_count_info
 
     def get_task_from_oracle(self):
@@ -103,12 +104,20 @@ class TaskManager():
             url = task.get('url')
             if url:
                 url_id = tools.get_sha1(url)
-                if self._redisdb.zadd(self._news_urls_dupefilter, url_id, prioritys = 0):
+                if self._redisdb.sadd(self._news_urls_dupefilter, url_id):
                     self._redisdb.zadd(self._news_url_table, task, prioritys = 0)
+                    # 下面是统计每层url数量用的表
+                    self._redisdb.sadd('news:news_urls_dupefilter0', url_id)
 
     def clear_task(self):
         # 清空url指纹表
         self._redisdb.clear('news:news_urls_dupefilter')
+        # 下面是统计每层url数量用的表
+        self._redisdb.clear('news:news_urls_dupefilter0')
+        self._redisdb.clear('news:news_urls_dupefilter1')
+        self._redisdb.clear('news:news_urls_dupefilter2')
+        self._redisdb.clear('news:news_urls_dupefilter3')
+        self._redisdb.clear('news:news_urls_dupefilter4')
 
 def monitor_task():
     task_manager = TaskManager()
@@ -123,8 +132,8 @@ def monitor_task():
     is_show_have_task = False
 
     while True:
-        is_have_task = task_manager.is_have_task()
-        if not is_have_task:
+        task_count = task_manager.get_task_count()
+        if not task_count:
             if not is_show_start_tip:
                 log.info('开始监控任务池...')
                 is_show_start_tip =  True
@@ -133,7 +142,7 @@ def monitor_task():
             tools.delay_time(CHECK_HAVE_TASK_SLEEP_TIME)
         else:
             if not is_show_have_task:
-                log.info('任务池中有任务，work可以正常工作')
+                log.info('任务池中有%s条任务，work可以正常工作'%task_count)
                 is_show_have_task = True
 
             total_time = 0
@@ -174,7 +183,7 @@ def monitor_task():
             if tasks:
                 total_time = 0
                 task_manager.add_task_to_redis(tasks)
-                task_count = task_manager.is_have_task()
+                task_count = task_manager.get_task_count()
                 if task_count:
                     begin_time = tools.get_current_date()
                     log.info('添加任务到redis中成功 共添加%s条任务。 work开始工作'%(task_count))
@@ -184,6 +193,9 @@ def monitor_task():
 if __name__ == '__main__':
     monitor_task()
     # task_manager = TaskManager()
+    # task_manager.clear_task()
+    # depth_count_info = task_manager.get_ever_depth_count(5)
+    # print(depth_count_info)
     # task = task_manager.get_task_from_oracle()
-    # task_count = task_manager.is_have_task()
+    # task_count = task_manager.get_task_count()
     # print(task_count)
