@@ -16,6 +16,7 @@ from db.redisdb import RedisDB
 from utils.log import log
 import time
 import collections
+from utils.bloomfilter import BloomFilter
 
 class Singleton(object):
     def __new__(cls, *args, **kwargs):
@@ -34,6 +35,9 @@ class ArticleManager(threading.Thread, Singleton):
             self._articles_deque = collections.deque()
             self._db = RedisDB()
             self._table_article = table_article
+            self._table_article_bloomfilter = table_article + '_bloomfilter'
+
+            self._bloomfilter = BloomFilter(redis_obj = self._db, key = self._table_article_bloomfilter)
 
     def run(self):
         while not self._thread_stop:
@@ -65,7 +69,12 @@ class ArticleManager(threading.Thread, Singleton):
         article_list = []
         while self._articles_deque:
             article = self._articles_deque.popleft()
-            article_list.append(article)
+            # 查看article是否存在
+            if self._bloomfilter.is_contains(article.get('uuid')):
+                article_list.append(article)
+            else:
+                self._bloomfilter.insert(article.get('uuid'))
+
             if len(article_list) > 100:
                 log.debug('添加article到数据库')
                 self._db.sadd(self._table_article, article_list)

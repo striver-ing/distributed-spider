@@ -18,6 +18,8 @@ import time
 from base.url_manager import UrlManager
 import collections
 
+LOCAL_HOST_IP = tools.get_localhost_ip()
+
 class Collector(threading.Thread):
     def __init__(self, tab_urls, depth):
         super(Collector, self).__init__()
@@ -57,12 +59,30 @@ class Collector(threading.Thread):
             log.debug('url 未处理完，不取url， url数量 = %s'%len(self._urls))
             return
 
-        urls_list = self._db.zget(self._tab_urls, count = self._url_count)
+        # 汇报节点信息
+        self._db.zadd('news:worker_status', LOCAL_HOST_IP, 0) # 未做
+
+        url_count = self._url_count # 先赋值
+        # 根据等待节点数量，动态分配url
+        worker_wait_count = self._db.zget_count('news:worker_status', priority_min = 0, priority_max = 0)
+        if worker_wait_count:
+            # 任务数量
+            task_count = self._db.zget_count(self._tab_urls)
+            # 动态分配的数量 = 任务数量 / 休息的节点数量
+            url_count = task_count // worker_wait_count
+
+        url_count = url_count if url_count <= self._url_count else self._url_count
+
+        urls_list = self._db.zget(self._tab_urls, count = url_count)
+
         if not urls_list:
             if not self._is_show_wait:
                 log.info('等待任务...')
                 self._is_show_wait = True
         else:
+            # 汇报节点信息
+            self._db.zadd('news:worker_status', LOCAL_HOST_IP, 1) # 正在做
+
             # 存url
             self.put_urls(urls_list)
             self._is_show_wait = False
@@ -116,4 +136,6 @@ if __name__ == '__main__':
     # collector = Collector('news_urls')
     # url = collector.get_urls(20)
     # print(url)
+    print(LOCAL_HOST_IP)
     pass
+

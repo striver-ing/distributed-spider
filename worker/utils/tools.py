@@ -35,6 +35,7 @@ from bs4 import UnicodeDammit
 from http.cookiejar import CookieJar as cj
 import uuid
 from hashlib import md5
+import socket
 
 TIME_OUT = 30
 TIMER_TIME = 5
@@ -400,8 +401,17 @@ def get_domain(url):
 #     return domain
 
 def get_ip(domain):
-    import socket
     ip = socket.getaddrinfo(domain, 'http')[0][4][0]
+    return ip
+
+def get_localhost_ip():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))
+        ip = s.getsockname()[0]
+    finally:
+        s.close()
+
     return ip
 
 def ip_to_num(ip):

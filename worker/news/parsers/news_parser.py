@@ -93,7 +93,7 @@ def parser_article(root_url, html, website_name, website_domain, website_positio
             content      %s
             '''%(uuid, title, author, release_time, website_name, website_domain, website_position, root_url, '省略...'))
 
-        if tools.is_have_chinese(content):
+        if tools.is_have_chinese(content) and release_time and len(release_time) == 19:
             # 入库
             add_article(uuid, title, author, release_time, website_name, website_domain, website_position, root_url, content)
 
