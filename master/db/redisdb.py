@@ -211,7 +211,10 @@ class RedisDB():
         return self._redis.getbit(table, offset)
 
     def clear(self, table):
-        self._redis.delete(table)
+        try:
+            self._redis.delete(table)
+        except Exception as e:
+            log.error(e)
 
 if __name__ == '__main__':
     db = RedisDB()

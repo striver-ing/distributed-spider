@@ -21,7 +21,17 @@ import collections
 LOCAL_HOST_IP = tools.get_localhost_ip()
 
 class Collector(threading.Thread):
-    def __init__(self, tab_urls, depth):
+    def __init__(self, tab_urls, depth, process_num = None):
+        '''
+        @summary:
+        ---------
+        @param tab_urls:
+        @param depth:
+        @param process_num: 进程编号
+        ---------
+        @result:
+        '''
+
         super(Collector, self).__init__()
         self._db = RedisDB()
         self._thread_stop = False
@@ -38,6 +48,9 @@ class Collector(threading.Thread):
         self._finished_callback = None
 
         self._is_show_wait = False
+
+        self._tab_worker_status = 'news:worker_status'
+        self._worker_mark = LOCAL_HOST_IP + ('_%s'%process_num if process_num else '')
 
     def run(self):
         while not self._thread_stop:
@@ -60,11 +73,11 @@ class Collector(threading.Thread):
             return
 
         # 汇报节点信息
-        self._db.zadd('news:worker_status', LOCAL_HOST_IP, 0) # 未做
+        self._db.zadd(self._tab_worker_status, self._worker_mark, 0) # 未做
 
         url_count = self._url_count # 先赋值
         # 根据等待节点数量，动态分配url
-        worker_wait_count = self._db.zget_count('news:worker_status', priority_min = 0, priority_max = 0)
+        worker_wait_count = self._db.zget_count(self._tab_worker_status, priority_min = 0, priority_max = 0)
         if worker_wait_count:
             # 任务数量
             task_count = self._db.zget_count(self._tab_urls)
@@ -80,8 +93,14 @@ class Collector(threading.Thread):
                 log.info('等待任务...')
                 self._is_show_wait = True
         else:
+            # # 记录url数量 测试用
+            # url_count_record = tools.read_file('url_count.txt')
+            # url_count_record =  url_count_record and int(url_count_record) or 0
+            # url_count_record += len(urls_list)
+            # tools.write_file('url_count.txt', str(url_count_record))
+
             # 汇报节点信息
-            self._db.zadd('news:worker_status', LOCAL_HOST_IP, 1) # 正在做
+            self._db.zadd(self._tab_worker_status, self._worker_mark, 1) # 正在做
 
             # 存url
             self.put_urls(urls_list)
@@ -133,9 +152,8 @@ class Collector(threading.Thread):
         return urls
 
 if __name__ == '__main__':
-    # collector = Collector('news_urls')
+    collector = Collector('news_urls')
     # url = collector.get_urls(20)
     # print(url)
-    print(LOCAL_HOST_IP)
-    pass
+    # 记录url数量
 

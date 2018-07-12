@@ -18,6 +18,8 @@ import time
 import collections
 from utils.bloomfilter import BloomFilter
 
+MAX_ARTICLE_COUNT = 500 # 缓存中最大文章数
+
 class Singleton(object):
     def __new__(cls, *args, **kwargs):
         if not hasattr(cls,'_inst'):
@@ -54,6 +56,12 @@ class ArticleManager(threading.Thread, Singleton):
 
     def put_articles(self, article):
         self._articles_deque.append(article)
+
+        if self.get_articles_count() > MAX_ARTICLE_COUNT: # 超过最大缓存，总动调用
+            self.__add_article_to_db()
+
+    def get_articles_count(self):
+        return len(self._table_article)
 
     def clear_article(self):
         '''

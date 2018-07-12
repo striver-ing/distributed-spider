@@ -17,6 +17,8 @@ from utils.log import log
 import time
 import collections
 
+MAX_URL_COUNT = 10000 # 缓存中最大url数
+
 class Singleton(object):
     def __new__(cls, *args, **kwargs):
         if not hasattr(cls,'_inst'):
@@ -55,6 +57,9 @@ class UrlManager(threading.Thread, Singleton):
         for url in urls:
             self._urls_deque.append(url)
 
+        if self.get_urls_count() > MAX_URL_COUNT: # 超过最大缓存，总动调用
+            self.__add_url_to_db()
+
     def get_urls_count(self):
         return len(self._urls_deque)
 
@@ -68,6 +73,11 @@ class UrlManager(threading.Thread, Singleton):
 
         self._db.clear(self._table_url)
         self._db.clear(self._table_url_dupefilter)
+
+    def print_url(self, i):
+        while self._urls_deque:
+            url = self._urls_deque.popleft()
+            print(i, '-->', url)
 
     def __add_url_to_db(self):
         url_list = []
@@ -105,25 +115,9 @@ class UrlManager(threading.Thread, Singleton):
 
 if __name__ == '__main__':
     url_manager = UrlManager('dsfdsafadsf')
-    # url_manager.start()
 
-    urls = collections.deque()
-    data = {
-        "url": "http://www.icm9.com/",
-        "status": 3213,
-        "remark": {
-            "spider_depth": 3,
-            "website_name": "早间新闻",
-            "website_position": 23,
-            "website_domain": "icm9.com",
-            "website_url": "http://www.icm9.com/"
-        },
-        "depth": 0,
-        "_id": "5b15f33d53446530acf20539",
-        "site_id": 1,
-        "retry_times": 0
-    }
-    url_manager.put_urls(data)
-    url_manager.put_urls(data)
-    url_manager.put_urls(data)
-    print(url_manager.get_urls_count())
+    for i in range(100):
+        url_manager.put_urls(i)
+
+    for i in range(5):
+        threading.Thread(target = url_manager.print_url, args = (i, )).start()

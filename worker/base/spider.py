@@ -17,7 +17,7 @@ import threading
 from base.url_manager import UrlManager
 
 class Spider(threading.Thread):
-    def __init__(self, tab_urls, tab_site = '', tab_content  = '', parser_count = None, depth = None, parser_params = {}, begin_callback = None, end_callback = None, content_unique_key = 'url', delete_tab_urls = False):
+    def __init__(self, tab_urls, tab_site = '', tab_content  = '', parser_count = None, depth = None, parser_params = {}, begin_callback = None, end_callback = None, content_unique_key = 'url', delete_tab_urls = False, process_num = None):
         '''
         @summary:
         ---------
@@ -50,7 +50,7 @@ class Spider(threading.Thread):
         # if tab_site: self._db.set_ensure_index(tab_site, 'read_status')
         # if tab_content: self._db.set_ensure_index(tab_content, 'read_status')
 
-        self._collector = Collector(tab_urls, depth)
+        self._collector = Collector(tab_urls, depth, process_num)
         self._parsers = []
 
         self._parser_params = parser_params
