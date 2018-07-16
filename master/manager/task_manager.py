@@ -111,13 +111,13 @@ class TaskManager():
 
     def clear_task(self):
         # 清空url指纹表
-        self._redisdb.clear('news:news_urls_dupefilter')
+        self._redisdb.sdelete('news:news_urls_dupefilter')
         # 下面是统计每层url数量用的表
-        self._redisdb.clear('news:news_urls_dupefilter0')
-        self._redisdb.clear('news:news_urls_dupefilter1')
-        self._redisdb.clear('news:news_urls_dupefilter2')
-        self._redisdb.clear('news:news_urls_dupefilter3')
-        self._redisdb.clear('news:news_urls_dupefilter4')
+        self._redisdb.sdelete('news:news_urls_dupefilter0')
+        self._redisdb.sdelete('news:news_urls_dupefilter1')
+        self._redisdb.sdelete('news:news_urls_dupefilter2')
+        self._redisdb.sdelete('news:news_urls_dupefilter3')
+        self._redisdb.sdelete('news:news_urls_dupefilter4')
 
 def monitor_task():
     task_manager = TaskManager()

@@ -100,6 +100,27 @@ class RedisDB():
     def sget_count(self, table):
         return self._redis.scard(table)
 
+    def sdelete(self, table):
+        '''
+        @summary: 删除set集合的大键（数据量大的表）
+        删除大set键，使用sscan命令，每次扫描集合中500个元素，再用srem命令每次删除一个键
+        若直接用delete命令，会导致Redis阻塞，出现故障切换和应用程序崩溃的故障。
+        ---------
+        @param table:
+        ---------
+        @result:
+        '''
+        # 当 SCAN 命令的游标参数被设置为 0 时， 服务器将开始一次新的迭代， 而当服务器向用户返回值为 0 的游标时， 表示迭代已结束
+        cursor = '0'
+        while cursor != 0:
+            cursor, data = self._redis.sscan(table, cursor = cursor, count = 500)
+            for item in data:
+                self._pipe.srem(table, item)
+
+            self._pipe.execute()
+
+
+
     def zadd(self, table, values,  prioritys = 0):
         '''
         @summary: 使用有序set集合存储数据， 去重(值存在更新)
@@ -211,9 +232,12 @@ class RedisDB():
         return self._redis.getbit(table, offset)
 
     def clear(self, table):
-        self._redis.delete(table)
+        try:
+            self._redis.delete(table)
+        except Exception as e:
+            log.error(e)
 
 if __name__ == '__main__':
     db = RedisDB()
-    data = db.zget_count('news:worker_status', priority_min = 0, priority_max = 0)
-    print(data)
+    # db.sadd('test', 1)
+    db.sdelete('test')
