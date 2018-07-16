@@ -111,13 +111,13 @@ class TaskManager():
 
     def clear_task(self):
         # 清空url指纹表
-        self._redisdb.clear('news:news_urls_dupefilter')
+        self._redisdb.sdelete('news:news_urls_dupefilter')
         # 下面是统计每层url数量用的表
-        self._redisdb.clear('news:news_urls_dupefilter0')
-        self._redisdb.clear('news:news_urls_dupefilter1')
-        self._redisdb.clear('news:news_urls_dupefilter2')
-        self._redisdb.clear('news:news_urls_dupefilter3')
-        self._redisdb.clear('news:news_urls_dupefilter4')
+        self._redisdb.sdelete('news:news_urls_dupefilter0')
+        self._redisdb.sdelete('news:news_urls_dupefilter1')
+        self._redisdb.sdelete('news:news_urls_dupefilter2')
+        self._redisdb.sdelete('news:news_urls_dupefilter3')
+        self._redisdb.sdelete('news:news_urls_dupefilter4')
 
 def monitor_task():
     task_manager = TaskManager()
@@ -175,9 +175,11 @@ def monitor_task():
                     \r文章数量信息：%s
                     '''%(begin_time, end_time, spend_hours, task_count, tools.dumps_json(depth_count_info), article_count_msg))
 
-            log.info('redis 中连续%s秒无任务，超过允许最大等待%s秒 开始添加任务'%(total_time, MAX_NULL_TASK_TIME))
             # 删除url指纹
+            log.info('删除url指纹...')
             task_manager.clear_task()
+
+            log.info('redis 中连续%s秒无任务，超过允许最大等待%s秒 开始添加任务'%(total_time, MAX_NULL_TASK_TIME))
             # 取任务
             tasks = task_manager.get_task_from_oracle()
             if tasks:
